@@ -1,228 +1,198 @@
 # OPENLANE Estimator Extension — UI Update Report
 
 **Date:** 2026-05-12  
-**Scope:** Chrome Extension — Estimate trigger UI + result popover redesign  
+**Scope:** Chrome Extension — Estimate tab moved OUTSIDE vehicle listing area (portal approach)  
 **Files modified:** `content.js`, `styles.css`
 
 ---
 
-## 1. Old UI Issue
+## 1. Problem History
 
-The previous implementation injected a blue `<button class="autopluto-estimate-btn">$ Estimate</button>` directly into each vehicle row (`tr[data-cy-item-num]`).
+### v1 (original)
+A `<button class="autopluto-estimate-btn">$ Estimate</button>` was injected directly into each `<tr>` row, overlapping vehicle title and price columns.
 
-**Problems:**
-- Floating button overlapped the vehicle title, VIN, mileage, sale status, and price columns.
-- Visually inconsistent with OPENLANE/Velocicast auction UI.
-- Button text `$ Estimate` was visible mid-row, cluttering the list.
-- The result card was appended inside the table row (`rowEl.appendChild(card)`), which caused clipping due to table overflow and z-index issues.
-- No loading skeleton — UI felt unresponsive while the API was in-flight.
+### v2 (previous)
+Replaced by a vertical tab `<div class="autopluto-estimate-tab">` using `position: absolute; right: 0` inside the row. This was better, but the tab still lived **inside** the row box. Table rows (`display: table-row`) do not form reliable containing blocks for absolutely-positioned children, and the table container's `overflow: hidden` clipped the tab on many layout breakpoints.
+
+### v3 (current — this update)
+The tab is now rendered as a **portal element on `document.body`**, positioned using `getBoundingClientRect()` of its associated row. It appears **outside and to the right** of the listing area, is never clipped by any table container, and expands further outward on hover.
 
 ---
 
-## 2. New Tab Design
+## 2. New Tab Design — Portal Approach
 
-### Trigger: Vertical Right-Edge Tab
+### Trigger structure
+
+```html
+<div class="autopluto-estimate-tab">
+  <div class="autopluto-estimate-handle">
+    <span class="autopluto-estimate-mini-label">AI</span>
+  </div>
+  <div class="autopluto-estimate-label">AI Estimate</div>
+</div>
+```
+
+### Layout
 
 | Property | Value |
 |----------|-------|
-| Element | `<div class="autopluto-estimate-tab">` |
-| Position | `position: absolute; top: 0; right: 0; height: 100%` |
-| Collapsed width | `10px` |
-| Expanded width | `76px` (on hover) |
-| Background | Linear gradient `#1a73e8 → #0d5cbf` |
-| Border radius | `6px 0 0 6px` (left-rounded, flush to right edge) |
+| Rendered in | `#autopluto-tab-portal` div on `document.body` |
+| Position | `position: fixed` — placed by JS |
+| Left | `rowEl.getBoundingClientRect().right` (row's right edge) |
+| Top | `rowEl.getBoundingClientRect().top` |
+| Height | `rowEl.getBoundingClientRect().height` |
+| Collapsed width | `26px` handle only |
+| Expanded width | `26px + 96px label` on hover |
+| Expansion direction | Rightward (outward from listing) |
 | Default opacity | `0` — invisible until row hover |
-| Row hover opacity | `1` — appears on `tr[data-cy-item-num]:hover` |
-| Tab hover | Expands to `76px`, shows "ESTIMATE" label |
-| Transition | `opacity 0.15s, width 0.2s ease` — smooth |
-| Z-index | `9000` |
-| Shadow | `-1px 0 6px rgba(0,0,0,.15)` — soft depth cue |
+| Row hover | JS adds `autopluto-tab-row-hover` → `opacity: 1` |
+| Z-index | `9001` (above page, below popover at `9100`) |
 
-### Tab Label
+### Handle (`autopluto-estimate-handle`)
+- 26px wide, full row height
+- Blue gradient `#1a73e8 → #0d5cbf`
+- Rounded right corners `0 4px 4px 0`
+- Contains vertical "AI" mini-label
+- Shadow `2px 0 6px rgba(0,0,0,.2)` for depth
 
-```html
-<span class="autopluto-tab-label">Estimate</span>
-```
-
-- Hidden (`opacity: 0`) when collapsed.
-- Fades in (`opacity: 1`) with `0.06s` delay when tab expands.
-- Font: 9px, uppercase, letter-spacing 0.6px, white.
+### Expanded label (`autopluto-estimate-label`)
+- Hidden via `max-width: 0` (no layout shift)
+- On tab hover → `max-width: 96px; padding: 0 8px`
+- Slides to the **right**, away from listing content
+- Text "AI Estimate", uppercase, 10px, white
 
 ### Tab States
 
-| Class | Meaning | Style |
-|-------|---------|-------|
-| *(default)* | Ready to click | Blue gradient |
-| `autopluto-tab-loading` | API call in-flight | Gray-blue, pulsing animation |
-| `autopluto-tab-done` | Result received | Green gradient, 55% opacity at rest |
-| `autopluto-tab-error` | API error | Red gradient |
+| Class | Visual |
+|-------|--------|
+| *(default)* | Blue handle |
+| `autopluto-tab-loading` | Gray-blue pulsing animation |
+| `autopluto-tab-done` | Green handle + label |
+| `autopluto-tab-error` | Red handle + label |
 
 ---
 
-## 3. CSS Classes Added
+## 3. Portal Infrastructure
 
-### Tab
-- `autopluto-estimate-tab` — outer tab strip
-- `autopluto-tab-label` — "Estimate" text inside tab
-- `autopluto-tab-loading` — loading pulse state
-- `autopluto-tab-done` — success state
-- `autopluto-tab-error` — error state
+### Portal container
 
-### Popover
-- `autopluto-popover` — alias class on `.autopluto-card` for semantic clarity
-- `autopluto-popover-header` — alias on `.autopluto-card-header`
-- `autopluto-price-grid` — alias on `.autopluto-prices`
-- `autopluto-price-primary` — alias on market price block
-- `autopluto-price-secondary` — alias on max bid block
-- `autopluto-close-btn` — alias on `.autopluto-card-close`
-- `autopluto-badge-safe` — green badge (maps to `autopluto-badge-green`)
-- `autopluto-badge-warning` — yellow badge (maps to `autopluto-badge-yellow`)
-- `autopluto-badge-danger` — red badge (maps to `autopluto-badge-red`)
-
-### Loading Skeleton
-- `autopluto-skeleton-vehicle` — vehicle title in loading state
-- `autopluto-skeleton-status` — status text ("Fetching estimate…")
-- `autopluto-skeleton-bar` — animated shimmer bar (full width)
-- `autopluto-skeleton-bar-sm` — shimmer bar at 68% width
-- `autopluto-skeleton-bar-xs` — shimmer bar at 42% width
-
-### Error / Debug
-- `autopluto-copy-payload-btn` — "Copy payload" button in 422 error cards
-
----
-
-## 4. Placement Logic
-
-### Tab injection (`injectEstimateTab`)
-
-```javascript
-const tab = document.createElement('div');
-tab.className = 'autopluto-estimate-tab';
-tab.setAttribute('data-autopluto-btn', 'true');
-tab.innerHTML = '<span class="autopluto-tab-label">Estimate</span>';
-rowEl.appendChild(tab);
-```
-
-- Sets `position: relative` on the row only if its computed position is `static`.
-- Uses `data-autopluto-estimate-injected="true"` marker to prevent duplicate injection.
-- Appended as the last child of the `tr` — sits on the far right edge.
-
-### Popover portal (`showResultCard`, `showErrorCard`, `showLoadingPopover`)
-
-All popovers are appended directly to `document.body` as `position: fixed` elements — not inside the table. This avoids all table clipping, overflow, and stacking context issues.
-
-A single global reference `_activePopover` / `_activePopoverRow` tracks the open popover. Opening a new popover automatically closes the previous one.
-
----
-
-## 5. Collision Handling
-
-```javascript
-function positionPopover(popover, rowEl) {
-  const POPOVER_W = 320;
-  const rect      = rowEl.getBoundingClientRect();
-
-  // Place to the right of the row
-  let left = rect.right + 12;
-  if (left + POPOVER_W > window.innerWidth - 16) {
-    left = window.innerWidth - POPOVER_W - 16;  // clamp to viewport
-  }
-  left = Math.max(16, left);
-
-  // Align top to row, clamp bottom to viewport
-  const popoverH = popover.offsetHeight || 420;
-  let top = rect.top;
-  if (top + popoverH > window.innerHeight - 16) {
-    top = window.innerHeight - popoverH - 16;
-  }
-  top = Math.max(16, top);
-
-  popover.style.left = `${left}px`;
-  popover.style.top  = `${top}px`;
+```css
+#autopluto-tab-portal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 9000;
 }
 ```
 
-**Rules:**
-- Primary placement: `rect.right + 12px` (to the right of the row).
-- If no space on right: clamps to `window.innerWidth - 320 - 16`.
-- Vertical: aligns with row top; clamps if popover would overflow viewport bottom.
-- Always at least `16px` from any edge.
+All tabs are children of this container. The container itself has `pointer-events: none`; each tab overrides to `pointer-events: auto`.
 
----
-
-## 6. Loading State
-
-When the tab is clicked and no cached result exists:
-
-1. Tab switches to `autopluto-tab-loading` (pulsing blue-gray animation).
-2. `showLoadingPopover(rowEl, vehicleTitle)` opens immediately at the row position showing:
-   - Header: "Auction Price Estimate"
-   - Extracted vehicle title
-   - Status: "Fetching estimate…"
-   - 4 animated shimmer skeleton bars
-3. On API success: loading popover is replaced by the full result card (`showResultCard`).
-4. On API error: loading popover is replaced by the error card (`showErrorCard`).
-
----
-
-## 7. Error State
-
-On API failure:
-
-- Tab turns red (`autopluto-tab-error`).
-- Error popover opens fixed-position to the right of the row.
-- For HTTP 422: validation errors rendered as a `<ul>` list with field paths.
-- For HTTP 422 and other API errors: "Copy payload" button appears (`autopluto-copy-payload-btn`) — copies raw error JSON to clipboard.
-- Timeout and network errors show specific human-readable messages.
-
----
-
-## 8. Duplicate Prevention
-
-The `data-autopluto-estimate-injected="true"` attribute prevents re-injection:
+### Position tracking (`content.js`)
 
 ```javascript
-if (rowEl.getAttribute('data-autopluto-estimate-injected') === 'true') return;
-rowEl.setAttribute('data-autopluto-estimate-injected', 'true');
+function syncTabPosition(rowEl, tab) {
+  const rect = rowEl.getBoundingClientRect();
+  tab.style.top    = `${rect.top}px`;
+  tab.style.left   = `${rect.right}px`;
+  tab.style.height = `${rect.height}px`;
+  tab.style.visibility = (rect.top < window.innerHeight && rect.bottom > 0) ? '' : 'hidden';
+}
+
+function syncAllTabPositions() { /* iterates _portalTabs Map */ }
 ```
 
-The `MutationObserver` fires `injectIntoRows` on newly added nodes. Because the marker is set on first injection, re-renders and scroll-based lazy loads do not produce duplicate tabs.
+Position updates are triggered by:
+- `window scroll` (capture phase, passive)
+- `window resize`
+- `setInterval(syncAllTabPositions, 400)` for lazy-load / SPA reflow
+
+### Row → tab hover bridge
+
+```javascript
+rowEl.addEventListener('mouseenter', () => tab.classList.add('autopluto-tab-row-hover'));
+rowEl.addEventListener('mouseleave', () => {
+  if (!tab.matches(':hover')) tab.classList.remove('autopluto-tab-row-hover');
+});
+tab.addEventListener('mouseleave', () => {
+  if (!rowEl.matches(':hover')) tab.classList.remove('autopluto-tab-row-hover');
+});
+```
+
+Since the tab is not a DOM child of the row, CSS `:hover` cannot cascade. The `mouseenter`/`mouseleave` bridge applies the `autopluto-tab-row-hover` class manually.
 
 ---
 
-## 9. Tests Performed / Acceptance Checklist
+## 4. Why `position: absolute` Inside Row Was Removed
+
+- `<tr>` elements use `display: table-row`, which does **not** create a containing block for absolutely positioned children in the CSS spec.
+- The Velocicast table wrapper applies `overflow: hidden`, which clipped any child element extending beyond the row's right boundary.
+- Setting `overflow: visible` on the table wrapper risked breaking the lane-list scroll and sticky header layout.
+- A fixed-position portal element is not affected by any ancestor's `overflow` setting and works reliably across all supported browsers.
+
+---
+
+## 5. Popover Positioning (unchanged)
+
+All popovers continue to be appended to `document.body` as `position: fixed`. The `positionPopover()` function places them at `rect.right + 12px` from the row, clamped to the viewport.
+
+Since the tab now sits at `rect.right`, the popover opens to the right of the tab, further outside the listing — consistent with the new visual hierarchy.
+
+---
+
+## 6. Classes Added / Changed
+
+### New
+- `#autopluto-tab-portal` — portal container on `document.body`
+- `autopluto-estimate-handle` — 26px handle strip
+- `autopluto-estimate-mini-label` — "AI" text inside handle
+- `autopluto-estimate-label` — expanding label to the right
+- `autopluto-tab-row-hover` — JS-applied class for row-hover opacity
+
+### Removed
+- `autopluto-tab-label` — replaced by `autopluto-estimate-mini-label` + `autopluto-estimate-label`
+- `tr[data-cy-item-num]:hover .autopluto-estimate-tab` CSS rule — replaced by JS class bridge
+
+---
+
+## 7. Acceptance Checklist
 
 | Test | Expected | Status |
 |------|----------|--------|
-| Tab attaches to each `tr[data-cy-item-num]` | Tab div present as last child | ✅ Code path verified |
-| Tab invisible on non-hover | `opacity: 0` default | ✅ CSS confirmed |
-| Tab visible on row hover | CSS `:hover` rule activates | ✅ CSS confirmed |
-| Tab expands on hover | `width: 76px` on `.autopluto-estimate-tab:hover` | ✅ CSS confirmed |
-| Tab height matches row | `height: 100%` + row is positioned container | ✅ CSS confirmed |
-| No floating `$ Estimate` button | Old `injectEstimateButton` removed | ✅ Replaced in code |
-| No duplicate tabs after scroll | `data-autopluto-estimate-injected` guard | ✅ Code path confirmed |
-| Popover opens to the right | `rect.right + 12` placement | ✅ `positionPopover()` |
-| Popover doesn't cover row text | Fixed portal on `document.body` | ✅ Not inside table |
-| Viewport collision handled | Clamp logic in `positionPopover()` | ✅ Code confirmed |
-| Loading skeleton shown | `showLoadingPopover` on click | ✅ Code path confirmed |
-| Result replaces skeleton | `closeActivePopover()` → append result | ✅ Code path confirmed |
-| Error card with copy button | 422 → `autopluto-copy-payload-btn` | ✅ Code path confirmed |
-| Dark mode compatible | `@media prefers-color-scheme: dark` | ✅ Updated in CSS |
+| Collapsed tab is outside the listing area | Tab at `left: rect.right`, not inside row | ✅ Portal position |
+| Tab never clipped by table overflow | Portal on `document.body` bypasses all containers | ✅ Architecture |
+| Tab height matches row height | `height` set from `rect.height` | ✅ JS sync |
+| Tab top aligns with row top | `top` set from `rect.top` | ✅ JS sync |
+| Hover expands tab to the right | `max-width` animation on `.autopluto-estimate-label` | ✅ CSS confirmed |
+| Expansion does NOT cover row content | Label grows rightward from `left: rect.right` | ✅ CSS layout |
+| Row text / price / status not covered | Tab is completely outside row boundary | ✅ By design |
+| Row hover shows tab | `mouseenter` adds `autopluto-tab-row-hover` | ✅ JS bridge |
+| Tab hover keeps tab visible | CSS `:hover` on tab itself | ✅ CSS confirmed |
+| Click still triggers estimate | `click` listener on portal tab element | ✅ Code path |
+| Popover opens to the right of tab | `positionPopover` → `rect.right + 12` | ✅ Unchanged |
+| No duplicate tabs after DOM refresh | `data-autopluto-estimate-injected` guard + Map | ✅ Code path |
+| Tab repositions on scroll | `scroll` listener → `syncAllTabPositions` | ✅ Listener added |
+| Tab repositions on resize | `resize` listener → `syncAllTabPositions` | ✅ Listener added |
+| Out-of-viewport tabs hidden | `visibility: hidden` when `rect.bottom ≤ 0` | ✅ Code path |
+| Listing layout not broken | No DOM changes inside table rows | ✅ By design |
+| Right panel layout not broken | Portal is body-level, does not affect lane panels | ✅ By design |
+| Loading skeleton shown | `showLoadingPopover` on click | ✅ Unchanged |
+| Dark mode compatible | `@media prefers-color-scheme: dark` | ✅ CSS section |
 
 ---
 
-## 10. Before / After Summary
+## 8. Before / After Summary
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Trigger element | `<button class="autopluto-estimate-btn">$ Estimate</button>` | `<div class="autopluto-estimate-tab">` |
-| Trigger position | Floating center-right of row, overlapping text | Far right edge strip, full row height |
-| Default visibility | Hidden (`display: none`) | Hidden (`opacity: 0`) |
-| Hover reveal | Jumps in with `display: inline-block` | Smooth opacity fade in |
-| Expanded state | N/A | 76px wide, label visible |
-| Result card anchor | `rowEl.appendChild(card)` — inside table row | `document.body.appendChild(card)` — fixed portal |
-| Loading feedback | None — button text changed to "⏳ Loading…" | Immediate skeleton popover with shimmer bars |
-| Confidence badges | Plain text in meta row | Color-coded badges (`autopluto-badge-safe/warning/danger`) |
-| Error copy button | Not available | "Copy payload" in 422 errors |
-| Duplicate guard | `data-autopluto-estimate-injected` | Same (unchanged) |
-| Dark mode | Partial | Full coverage including skeleton and copy button |
+| Aspect | v2 (inside row, absolute) | v3 (portal, fixed) |
+|--------|--------------------------|-------------------|
+| DOM parent of tab | `<tr>` row element | `#autopluto-tab-portal` on `document.body` |
+| Position type | `position: absolute` | `position: fixed` |
+| Position anchor | `right: 0` inside row | `left: rect.right` from `getBoundingClientRect()` |
+| Overflow clipping | Affected by table `overflow: hidden` | Not affected (portal bypasses all containers) |
+| Row hover detection | CSS `tr:hover .tab` | JS `mouseenter`/`mouseleave` bridge |
+| Expansion direction | Leftward (inward, over row content) | Rightward (outward, away from listing) |
+| Handle width | 10px strip | 26px — more clickable |
+| Label content | "ESTIMATE" text only | "AI" vertical mini-label + "AI Estimate" expanding label |
+| Position tracking | Static (set once at inject) | Dynamic (scroll + resize + 400ms interval) |
+

@@ -16,83 +16,130 @@
   line-height: 1.4;
 }
 
-/* ── Estimate tab (vertical right-edge strip) ───────────────── */
-.autopluto-estimate-tab {
-  position: absolute !important;
+/* ── Portal container (tabs live here, on document.body) ────── */
+#autopluto-tab-portal {
+  position: fixed !important;
   top: 0 !important;
-  right: 0 !important;
-  height: 100% !important;
-  width: 10px !important;
-  background: linear-gradient(180deg, #1a73e8 0%, #0d5cbf 100%) !important;
-  border-radius: 6px 0 0 6px !important;
-  cursor: pointer !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
   z-index: 9000 !important;
+}
+
+/* ── Estimate tab (portal, fixed outside the row right edge) ─── */
+/*    top / left / height are set by JS via getBoundingClientRect */
+.autopluto-estimate-tab {
+  position: fixed !important;
+  display: flex !important;
+  align-items: stretch !important;
+  width: 26px !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 9001 !important;
   opacity: 0 !important;
-  overflow: hidden !important;
+  transition: opacity 0.15s ease !important;
+  box-sizing: border-box !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Show on row hover (class toggled by JS mouseenter/leave) */
+.autopluto-estimate-tab.autopluto-tab-row-hover,
+.autopluto-estimate-tab:hover {
+  opacity: 1 !important;
+}
+
+/* Keep slightly visible in done / error state */
+.autopluto-estimate-tab.autopluto-tab-done,
+.autopluto-estimate-tab.autopluto-tab-error {
+  opacity: 0.5 !important;
+}
+
+.autopluto-estimate-tab.autopluto-tab-row-hover.autopluto-tab-done,
+.autopluto-estimate-tab.autopluto-tab-row-hover.autopluto-tab-error,
+.autopluto-estimate-tab:hover.autopluto-tab-done,
+.autopluto-estimate-tab:hover.autopluto-tab-error {
+  opacity: 1 !important;
+}
+
+/* ── Handle — the 26 px strip anchored to the row's right edge ─ */
+.autopluto-estimate-handle {
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 100% !important;
+  background: linear-gradient(180deg, #1a73e8 0%, #0d5cbf 100%) !important;
+  border-radius: 0 4px 4px 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-shadow: 2px 0 6px rgba(0,0,0,.2) !important;
+  flex-shrink: 0 !important;
   box-sizing: border-box !important;
-  transition: opacity 0.15s ease, width 0.2s ease !important;
-  box-shadow: -1px 0 6px rgba(0,0,0,.15) !important;
 }
 
-/* Show tab on row hover */
-tr[data-cy-item-num]:hover .autopluto-estimate-tab,
-.item-info-row:hover .autopluto-estimate-tab {
-  opacity: 1 !important;
-}
-
-/* Keep tab visible when done / error */
-.autopluto-estimate-tab.autopluto-tab-done,
-.autopluto-estimate-tab.autopluto-tab-error {
-  opacity: 0.55 !important;
-  width: 10px !important;
-}
-
-tr[data-cy-item-num]:hover .autopluto-estimate-tab.autopluto-tab-done,
-tr[data-cy-item-num]:hover .autopluto-estimate-tab.autopluto-tab-error {
-  opacity: 1 !important;
-}
-
-/* Expand tab on hover */
-.autopluto-estimate-tab:hover {
-  width: 76px !important;
-  opacity: 1 !important;
-}
-
-/* Tab label (hidden until expanded) */
-.autopluto-tab-label {
+/* ── Mini label inside the handle ──────────────────────────── */
+.autopluto-estimate-mini-label {
   color: #fff !important;
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-  letter-spacing: 0.6px !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
   text-transform: uppercase !important;
-  opacity: 0 !important;
-  transition: opacity 0.12s 0.06s !important;
+  writing-mode: vertical-rl !important;
+  text-orientation: mixed !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   pointer-events: none !important;
+  user-select: none !important;
 }
 
-.autopluto-estimate-tab:hover .autopluto-tab-label {
-  opacity: 1 !important;
+/* ── Expanded label — slides out to the RIGHT on hover ────────── */
+.autopluto-estimate-label {
+  max-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  background: #1565c0 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 !important;
+  border-radius: 0 4px 4px 0 !important;
+  transition: max-width 0.2s ease, padding 0.2s ease !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
 }
 
-/* Tab state: loading (pulse) */
-.autopluto-tab-loading {
+.autopluto-estimate-tab:hover .autopluto-estimate-label {
+  max-width: 96px !important;
+  padding: 0 8px !important;
+}
+
+/* ── State colors applied to both handle and label ─────────── */
+.autopluto-tab-loading .autopluto-estimate-handle {
   background: linear-gradient(180deg, #5a9cf5 0%, #3d7dd4 100%) !important;
   animation: autopluto-pulse 1s ease-in-out infinite !important;
 }
-
-/* Tab state: done (green) */
-.autopluto-tab-done {
-  background: linear-gradient(180deg, #188038 0%, #0d5c2a 100%) !important;
+.autopluto-tab-loading .autopluto-estimate-label {
+  background: #3d7dd4 !important;
 }
 
-/* Tab state: error (red) */
-.autopluto-tab-error {
+.autopluto-tab-done .autopluto-estimate-handle {
+  background: linear-gradient(180deg, #188038 0%, #0d5c2a 100%) !important;
+}
+.autopluto-tab-done .autopluto-estimate-label {
+  background: #0d5c2a !important;
+}
+
+.autopluto-tab-error .autopluto-estimate-handle {
   background: linear-gradient(180deg, #d93025 0%, #a31e17 100%) !important;
+}
+.autopluto-tab-error .autopluto-estimate-label {
+  background: #a31e17 !important;
 }
 
 @keyframes autopluto-pulse {

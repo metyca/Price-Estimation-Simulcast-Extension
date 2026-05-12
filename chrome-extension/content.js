@@ -478,18 +478,58 @@
     return                       { color: 'red',    label: 'Above max bid',   cls: 'autopluto-badge-red' };
   }
 
+  // ── Portal tab infrastructure ──────────────────────────────────────────────
+  // Tabs are rendered on document.body (fixed position) so they appear OUTSIDE
+  // the table/list container and are never clipped by table overflow.
+
+  let _tabPortal = null;
+  const _portalTabs = new Map(); // rowEl → tabEl
+
+  function getTabPortal() {
+    if (!_tabPortal || !document.contains(_tabPortal)) {
+      _tabPortal = document.createElement('div');
+      _tabPortal.id = 'autopluto-tab-portal';
+      document.body.appendChild(_tabPortal);
+    }
+    return _tabPortal;
+  }
+
+  function syncTabPosition(rowEl, tab) {
+    const rect = rowEl.getBoundingClientRect();
+    if (rect.height === 0) return;
+    tab.style.top    = `${rect.top}px`;
+    tab.style.left   = `${rect.right}px`;
+    tab.style.height = `${rect.height}px`;
+    // Hide tabs that have scrolled completely out of the viewport
+    const inView = rect.top < window.innerHeight && rect.bottom > 0;
+    tab.style.visibility = inView ? '' : 'hidden';
+  }
+
+  function syncAllTabPositions() {
+    for (const [rowEl, tab] of _portalTabs) {
+      if (!document.contains(rowEl)) {
+        tab.remove();
+        _portalTabs.delete(rowEl);
+      } else {
+        syncTabPosition(rowEl, tab);
+      }
+    }
+  }
+
   function injectEstimateTab(rowEl, onClickCallback) {
     if (rowEl.getAttribute('data-autopluto-estimate-injected') === 'true') return;
     rowEl.setAttribute('data-autopluto-estimate-injected', 'true');
 
-    const existingPosition = window.getComputedStyle(rowEl).position;
-    if (existingPosition === 'static') rowEl.style.position = 'relative';
-
     const tab = document.createElement('div');
     tab.className = 'autopluto-estimate-tab';
     tab.setAttribute('data-autopluto-btn', 'true');
-    tab.title = 'Estimate price';
-    tab.innerHTML = '<span class="autopluto-tab-label">Estimate</span>';
+    tab.title = 'AI Price Estimate';
+    tab.innerHTML = `
+      <div class="autopluto-estimate-handle">
+        <span class="autopluto-estimate-mini-label">AI</span>
+      </div>
+      <div class="autopluto-estimate-label">AI Estimate</div>
+    `;
 
     tab.addEventListener('click', (e) => {
       e.preventDefault();
@@ -497,7 +537,18 @@
       onClickCallback(rowEl, tab);
     });
 
-    rowEl.appendChild(tab);
+    // Mirror row hover onto the tab so opacity and state transitions work
+    rowEl.addEventListener('mouseenter', () => tab.classList.add('autopluto-tab-row-hover'));
+    rowEl.addEventListener('mouseleave', () => {
+      if (!tab.matches(':hover')) tab.classList.remove('autopluto-tab-row-hover');
+    });
+    tab.addEventListener('mouseleave', () => {
+      if (!rowEl.matches(':hover')) tab.classList.remove('autopluto-tab-row-hover');
+    });
+
+    syncTabPosition(rowEl, tab);
+    getTabPortal().appendChild(tab);
+    _portalTabs.set(rowEl, tab);
   }
 
   function setTabLoading(tab) {
@@ -961,6 +1012,13 @@
   function init() {
     injectIntoRows(document);
     startObserver();
+
+    // Keep portal tabs aligned as the page scrolls or resizes
+    window.addEventListener('scroll', syncAllTabPositions, { passive: true, capture: true });
+    window.addEventListener('resize', syncAllTabPositions, { passive: true });
+    // Catch layout shifts not triggered by scroll/resize (e.g. lazy-load reflows)
+    setInterval(syncAllTabPositions, 400);
+
     console.log('[AutoPluто] Content script initialised.');
   }
 
