@@ -1,0 +1,512 @@
+/* ============================================================
+   AutoPluто – Auction Pricing Assistant
+   CSS for injected UI (content script)
+   All classes prefixed: autopluto-
+   ============================================================ */
+
+/* ── Reset / isolation ─────────────────────────────────────── */
+.autopluto-estimate-tab,
+.autopluto-card,
+.autopluto-debug-modal,
+.autopluto-batch-banner {
+  all: initial;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ── Estimate tab (vertical right-edge strip) ───────────────── */
+.autopluto-estimate-tab {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100% !important;
+  width: 10px !important;
+  background: linear-gradient(180deg, #1a73e8 0%, #0d5cbf 100%) !important;
+  border-radius: 6px 0 0 6px !important;
+  cursor: pointer !important;
+  z-index: 9000 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  transition: opacity 0.15s ease, width 0.2s ease !important;
+  box-shadow: -1px 0 6px rgba(0,0,0,.15) !important;
+}
+
+/* Show tab on row hover */
+tr[data-cy-item-num]:hover .autopluto-estimate-tab,
+.item-info-row:hover .autopluto-estimate-tab {
+  opacity: 1 !important;
+}
+
+/* Keep tab visible when done / error */
+.autopluto-estimate-tab.autopluto-tab-done,
+.autopluto-estimate-tab.autopluto-tab-error {
+  opacity: 0.55 !important;
+  width: 10px !important;
+}
+
+tr[data-cy-item-num]:hover .autopluto-estimate-tab.autopluto-tab-done,
+tr[data-cy-item-num]:hover .autopluto-estimate-tab.autopluto-tab-error {
+  opacity: 1 !important;
+}
+
+/* Expand tab on hover */
+.autopluto-estimate-tab:hover {
+  width: 76px !important;
+  opacity: 1 !important;
+}
+
+/* Tab label (hidden until expanded) */
+.autopluto-tab-label {
+  color: #fff !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  opacity: 0 !important;
+  transition: opacity 0.12s 0.06s !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  pointer-events: none !important;
+}
+
+.autopluto-estimate-tab:hover .autopluto-tab-label {
+  opacity: 1 !important;
+}
+
+/* Tab state: loading (pulse) */
+.autopluto-tab-loading {
+  background: linear-gradient(180deg, #5a9cf5 0%, #3d7dd4 100%) !important;
+  animation: autopluto-pulse 1s ease-in-out infinite !important;
+}
+
+/* Tab state: done (green) */
+.autopluto-tab-done {
+  background: linear-gradient(180deg, #188038 0%, #0d5c2a 100%) !important;
+}
+
+/* Tab state: error (red) */
+.autopluto-tab-error {
+  background: linear-gradient(180deg, #d93025 0%, #a31e17 100%) !important;
+}
+
+@keyframes autopluto-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
+}
+
+/* ── Card / Popover container (portal on document.body) ─────── */
+.autopluto-card {
+  display: block !important;
+  position: fixed !important;
+  width: 320px !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  background: #fff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 28px rgba(0,0,0,.22) !important;
+  z-index: 9100 !important;
+  color: #202124 !important;
+  animation: autopluto-popover-in 0.14s ease !important;
+}
+
+@keyframes autopluto-popover-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.autopluto-card-error {
+  border-color: #d93025 !important;
+}
+
+/* ── Card header ────────────────────────────────────────────── */
+.autopluto-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 10px !important;
+  background: #1a73e8 !important;
+  color: #fff !important;
+}
+
+.autopluto-card-error .autopluto-card-header {
+  background: #d93025 !important;
+}
+
+.autopluto-card-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 245px !important;
+}
+
+.autopluto-card-close {
+  all: initial !important;
+  cursor: pointer !important;
+  color: rgba(255,255,255,.8) !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  padding: 0 2px !important;
+}
+
+.autopluto-card-close:hover {
+  color: #fff !important;
+}
+
+/* ── Card body ──────────────────────────────────────────────── */
+.autopluto-card-body {
+  padding: 10px !important;
+}
+
+/* ── Sub-row (VIN / mileage) ────────────────────────────────── */
+.autopluto-row-sub {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px 8px !important;
+  margin-bottom: 8px !important;
+  font-size: 10px !important;
+  color: #5f6368 !important;
+}
+
+.autopluto-label-sm {
+  color: #5f6368 !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+}
+
+.autopluto-val-sm {
+  color: #202124 !important;
+  font-size: 10px !important;
+}
+
+/* ── Price blocks ───────────────────────────────────────────── */
+.autopluto-prices {
+  display: flex !important;
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.autopluto-price-block {
+  flex: 1 !important;
+  background: #f8f9fa !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+  text-align: center !important;
+  min-width: 0 !important;
+}
+
+.autopluto-price-label {
+  font-size: 9px !important;
+  color: #5f6368 !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .4px !important;
+  margin-bottom: 2px !important;
+}
+
+.autopluto-price-value {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #202124 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-price-main { color: #1a73e8 !important; }
+.autopluto-price-bid  { color: #188038 !important; }
+.autopluto-price-current { color: #5f6368 !important; font-size: 12px !important; }
+
+/* ── Margin row ─────────────────────────────────────────────── */
+.autopluto-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-label {
+  font-size: 10px !important;
+  color: #5f6368 !important;
+  font-weight: 600 !important;
+}
+
+/* ── Safety badges ──────────────────────────────────────────── */
+.autopluto-badge {
+  display: inline-block !important;
+  padding: 2px 7px !important;
+  border-radius: 10px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-green   { background: #e6f4ea !important; color: #137333 !important; }
+.autopluto-badge-yellow  { background: #fef9e7 !important; color: #a37300 !important; }
+.autopluto-badge-red     { background: #fce8e6 !important; color: #c5221f !important; }
+.autopluto-badge-gray    { background: #f1f3f4 !important; color: #5f6368 !important; }
+/* Semantic aliases */
+.autopluto-badge-safe    { background: #e6f4ea !important; color: #137333 !important; }
+.autopluto-badge-warning { background: #fef9e7 !important; color: #a37300 !important; }
+.autopluto-badge-danger  { background: #fce8e6 !important; color: #c5221f !important; }
+
+/* ── Divider ────────────────────────────────────────────────── */
+.autopluto-divider {
+  height: 1px !important;
+  background: #e8eaed !important;
+  margin: 6px 0 !important;
+}
+
+/* ── Meta info ──────────────────────────────────────────────── */
+.autopluto-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px 12px !important;
+  margin-bottom: 4px !important;
+}
+
+.autopluto-meta-item {
+  font-size: 10px !important;
+  color: #5f6368 !important;
+}
+
+.autopluto-meta-item strong {
+  color: #202124 !important;
+}
+
+.autopluto-meta-versions {
+  margin-bottom: 6px !important;
+}
+
+/* ── Reason text ────────────────────────────────────────────── */
+.autopluto-reason {
+  font-size: 10px !important;
+  color: #5f6368 !important;
+  font-style: italic !important;
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  border-left: 2px solid #dadce0 !important;
+  padding-left: 6px !important;
+}
+
+/* ── Warnings ───────────────────────────────────────────────── */
+.autopluto-warning {
+  background: #fce8e6 !important;
+  color: #c5221f !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  margin-top: 4px !important;
+}
+
+.autopluto-warning-mild {
+  background: #fef9e7 !important;
+  color: #a37300 !important;
+}
+
+/* ── Error message ──────────────────────────────────────────── */
+.autopluto-error-msg {
+  font-size: 11px !important;
+  color: #c5221f !important;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+}
+
+/* ── Validation error list (422 responses) ───────────────────── */
+.autopluto-validation-errors {
+  margin: 6px 0 0 !important;
+  padding: 0 0 0 16px !important;
+  list-style: disc !important;
+  font-size: 10px !important;
+  color: #c5221f !important;
+  line-height: 1.5 !important;
+}
+
+.autopluto-validation-errors li {
+  margin-bottom: 2px !important;
+}
+
+/* ── Card footer ────────────────────────────────────────────── */
+.autopluto-card-footer {
+  padding: 6px 10px !important;
+  background: #f8f9fa !important;
+  border-top: 1px solid #e8eaed !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.autopluto-refresh-btn {
+  all: initial !important;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  color: #1a73e8 !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+.autopluto-refresh-btn:hover {
+  text-decoration: underline !important;
+}
+
+/* ── Debug modal ────────────────────────────────────────────── */
+.autopluto-debug-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 99999 !important;
+  width: 480px !important;
+  max-width: 95vw !important;
+  background: #202124 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5) !important;
+  color: #e8eaed !important;
+  overflow: hidden !important;
+}
+
+.autopluto-debug-inner {
+  padding: 14px !important;
+}
+
+.autopluto-debug-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 10px !important;
+  color: #e8eaed !important;
+  font-size: 13px !important;
+}
+
+#autopluto-debug-close {
+  all: initial !important;
+  color: #9aa0a6 !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+}
+
+.autopluto-debug-pre {
+  background: #000 !important;
+  color: #80cbc4 !important;
+  border-radius: 4px !important;
+  padding: 10px !important;
+  font-size: 11px !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  max-height: 360px !important;
+  overflow-y: auto !important;
+  white-space: pre-wrap !important;
+  margin: 0 0 10px !important;
+}
+
+#autopluto-debug-copy {
+  all: initial !important;
+  font-family: inherit !important;
+  background: #1a73e8 !important;
+  color: #fff !important;
+  padding: 5px 12px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+/* ── Batch banner ───────────────────────────────────────────── */
+.autopluto-batch-banner {
+  position: fixed !important;
+  bottom: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99998 !important;
+  background: #202124 !important;
+  color: #e8eaed !important;
+  padding: 8px 18px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3) !important;
+  white-space: nowrap !important;
+}
+
+/* ── Loading skeleton ───────────────────────────────────────── */
+.autopluto-skeleton-vehicle {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #202124 !important;
+  margin-bottom: 8px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.autopluto-skeleton-status {
+  font-size: 10px !important;
+  color: #5f6368 !important;
+  margin-bottom: 14px !important;
+  font-style: italic !important;
+}
+
+.autopluto-skeleton-bar {
+  height: 14px !important;
+  background: linear-gradient(90deg, #f1f3f4 25%, #e4e6e8 50%, #f1f3f4 75%) !important;
+  background-size: 200% 100% !important;
+  border-radius: 4px !important;
+  margin-bottom: 8px !important;
+  animation: autopluto-shimmer 1.4s ease-in-out infinite !important;
+}
+
+.autopluto-skeleton-bar-sm { width: 68% !important; }
+.autopluto-skeleton-bar-xs { width: 42% !important; }
+
+@keyframes autopluto-shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Copy payload button (error cards / debug) ──────────────── */
+.autopluto-copy-payload-btn {
+  all: initial !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  display: inline-block !important;
+  margin-top: 8px !important;
+  padding: 3px 10px !important;
+  background: #f1f3f4 !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #3c4043 !important;
+  cursor: pointer !important;
+}
+
+.autopluto-copy-payload-btn:hover {
+  background: #e8eaed !important;
+}
+
+/* ── Dark-mode compatibility ────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .autopluto-card {
+    background: #292a2d !important;
+    border-color: #3c4043 !important;
+    color: #e8eaed !important;
+  }
+  .autopluto-price-block { background: #3c4043 !important; }
+  .autopluto-price-value { color: #e8eaed !important; }
+  .autopluto-card-footer { background: #3c4043 !important; border-top-color: #5f6368 !important; }
+  .autopluto-divider { background: #3c4043 !important; }
+  .autopluto-meta-item { color: #9aa0a6 !important; }
+  .autopluto-meta-item strong { color: #e8eaed !important; }
+  .autopluto-reason { color: #9aa0a6 !important; border-left-color: #5f6368 !important; }
+  .autopluto-label { color: #9aa0a6 !important; }
+  .autopluto-val-sm, .autopluto-label-sm { color: #9aa0a6 !important; }
+  .autopluto-skeleton-vehicle { color: #e8eaed !important; }
+  .autopluto-skeleton-status  { color: #9aa0a6 !important; }
+  .autopluto-skeleton-bar     { background: linear-gradient(90deg, #3c4043 25%, #4a4c50 50%, #3c4043 75%) !important; background-size: 200% 100% !important; }
+  .autopluto-copy-payload-btn { background: #3c4043 !important; border-color: #5f6368 !important; color: #e8eaed !important; }
+}

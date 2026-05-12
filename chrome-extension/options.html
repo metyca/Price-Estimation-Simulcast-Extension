@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auction Pricing Assistant – Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 32px 16px;
+      color: #1a1a2e;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    header .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #4361ee, #7209b7);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 13px;
+      color: #666;
+      margin: 2px 0 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: #888;
+      margin: 0 0 18px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    label .hint {
+      font-weight: 400;
+      color: #888;
+      margin-left: 6px;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    input[type="number"],
+    input[type="password"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color .15s;
+      outline: none;
+      background: #fafafa;
+    }
+
+    input:focus {
+      border-color: #4361ee;
+      background: #fff;
+    }
+
+    input.error { border-color: #e63946; }
+
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label { font-size: 14px; }
+    .toggle-desc { font-size: 12px; color: #888; margin-top: 2px; }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #ccc;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .2s;
+    }
+
+    .toggle input:checked + .toggle-slider { background: #4361ee; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    button:hover { opacity: .85; }
+
+    .btn-primary { background: #4361ee; color: #fff; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-danger { background: #e63946; color: #fff; }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+
+    .status.success { background: #d1fae5; color: #065f46; display: block; }
+    .status.error   { background: #fee2e2; color: #991b1b; display: block; }
+
+    .version-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f2f5;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: #555;
+      margin-right: 8px;
+    }
+
+    .version-tag .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">A</div>
+    <div>
+      <h1>Auction Pricing Assistant</h1>
+      <p>Settings &amp; Configuration</p>
+    </div>
+  </header>
+
+  <!-- API Configuration -->
+  <div class="card">
+    <h2>API Configuration</h2>
+
+    <div class="form-group">
+      <label for="apiBaseUrl">API Base URL <span class="hint">no trailing slash</span></label>
+      <input type="url" id="apiBaseUrl" placeholder="https://catboost-100027963480.northamerica-northeast2.run.app">
+    </div>
+
+    <div class="form-group">
+      <label for="apiEndpoint">Endpoint Path</label>
+      <input type="text" id="apiEndpoint" placeholder="/v1/predict">
+    </div>
+
+    <div class="form-group">
+      <label for="apiKey">API Key / Token <span class="hint">optional</span></label>
+      <input type="password" id="apiKey" placeholder="Leave blank if not required" autocomplete="off">
+    </div>
+
+    <div class="form-group row2">
+      <div>
+        <label for="requestTimeout">Request Timeout <span class="hint">ms</span></label>
+        <input type="number" id="requestTimeout" min="1000" max="60000" step="500" placeholder="15000">
+      </div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- Default Fields -->
+  <div class="card">
+    <h2>Default Payload Fields</h2>
+
+    <div class="form-group row2">
+      <div>
+        <label for="defaultSource">Default Source</label>
+        <input type="text" id="defaultSource" placeholder="openlane">
+      </div>
+      <div>
+        <label for="defaultSection">Default Section</label>
+        <input type="text" id="defaultSection" placeholder="simulcast">
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug & Behaviour -->
+  <div class="card">
+    <h2>Debug &amp; Behaviour</h2>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Debug Mode</div>
+        <div class="toggle-desc">Show extracted payload before each API call and log request/response in console</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="debugMode">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Show Copy Buttons</div>
+        <div class="toggle-desc">Display "Copy payload" and "Copy response" buttons in the debug modal</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="showCopyButtons" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Batch Estimate Enabled</div>
+        <div class="toggle-desc">Allow "Estimate visible vehicles" batch action (requires explicit confirmation)</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="batchEnabled">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Model Versions (read-only display) -->
+  <div class="card">
+    <h2>Active Model Versions</h2>
+    <div>
+      <span class="version-tag"><span class="dot"></span>Model v15.4</span>
+      <span class="version-tag"><span class="dot"></span>Calibration v15.4a</span>
+    </div>
+    <p style="font-size:12px;color:#888;margin:12px 0 0;">These are set server-side. Update your API if you need a different version.</p>
+  </div>
+
+  <!-- Actions -->
+  <div class="btn-row">
+    <button class="btn-primary" id="btnSave">Save Settings</button>
+    <button class="btn-secondary" id="btnReset">Reset to Defaults</button>
+    <button class="btn-secondary" id="btnTest">Test Connection</button>
+  </div>
+
+  <div class="status" id="statusMsg"></div>
+
+  <!-- Debug output (shown after test when debug mode is on, or on errors) -->
+  <div class="card" id="debugPanel" style="display:none; margin-top:16px;">
+    <h2>Debug Output</h2>
+    <pre id="debugOutput" style="
+      font-size: 11px;
+      line-height: 1.5;
+      background: #f4f6fa;
+      border: 1px solid #e0e4ef;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      max-height: 420px;
+      white-space: pre;
+      color: #1a1a2e;
+      margin: 0;
+    "></pre>
+  </div>
+
+  <footer>Auction Pricing Assistant &bull; Manifest V3 Chrome Extension</footer>
+
+</div>
+
+<script src="options.js"></script>
+</body>
+</html>
