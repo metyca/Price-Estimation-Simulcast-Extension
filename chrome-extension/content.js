@@ -427,16 +427,16 @@
     const reason = Array.isArray(reasonRaw) ? reasonRaw.join(' · ') : (reasonRaw || null);
 
     return {
-      model_version:          raw.model_version           ?? null,
-      calibration_version:    null,                         // not returned by current API
-      estimated_market_price: raw.estimated_market_price  ?? raw.adjusted_price ?? null,
-      recommended_max_bid:    raw.recommended_max_bid      ?? null,
-      confidence_level:       raw.confidence_level         ?? raw.confidence    ?? null,
-      bid_safety_level:       raw.bid_safety_level         ?? null,
-      calibration_buffer:     null,                         // not returned by current API
+      model_version:          raw.model_version                    ?? null,
+      calibration_version:    raw.calibration_version              ?? null,
+      estimated_market_price: raw.estimated_market_price           ?? raw.adjusted_price ?? null,
+      recommended_max_bid:    raw.recommended_max_bid              ?? null,
+      confidence_level:       raw.confidence_level                 ?? raw.confidence    ?? null,
+      bid_safety_level:       raw.bid_safety_level                 ?? null,
+      calibration_buffer:     raw.calibration_buffer               ?? null,
       reason,
-      comparable_count:       raw.comparables_found        ?? null,
-      market_fallback_level:  raw.market_match_level       ?? null,
+      comparable_count:       raw.comparables_found                ?? null,
+      market_fallback_level:  raw.market_match_level               ?? null,
       _raw: raw,
     };
   }
@@ -523,12 +523,12 @@
     const tab = document.createElement('div');
     tab.className = 'autopluto-estimate-tab';
     tab.setAttribute('data-autopluto-btn', 'true');
-    tab.title = 'AI Price Estimate';
+    tab.title = 'Estimate price';
     tab.innerHTML = `
       <div class="autopluto-estimate-handle">
-        <span class="autopluto-estimate-mini-label">AI</span>
+        <span class="autopluto-estimate-dollar">$</span>
       </div>
-      <div class="autopluto-estimate-label">AI Estimate</div>
+      <div class="autopluto-estimate-label">Estimate</div>
     `;
 
     tab.addEventListener('click', (e) => {
@@ -579,7 +579,7 @@
   }
 
   function positionPopover(popover, rowEl) {
-    const POPOVER_W = 320;
+    const POPOVER_W = 400;
     const rect      = rowEl.getBoundingClientRect();
 
     let left = rect.right + 12;
@@ -599,6 +599,144 @@
     popover.style.top  = `${top}px`;
   }
 
+  // ── UI builder helpers ──────────────────────────────────────
+
+  function buildDecisionBanner(margin, hasCurrentPrice) {
+    if (!hasCurrentPrice || margin === null) {
+      return `<div class="autopluto-decision-banner autopluto-decision-banner--neutral">
+        <span class="autopluto-decision-icon">💰</span>
+        <div>
+          <div class="autopluto-decision-title">No current bid price</div>
+          <div class="autopluto-decision-subtitle">Cannot calculate margin to max bid</div>
+        </div>
+      </div>`;
+    }
+    if (margin > 1000) {
+      return `<div class="autopluto-decision-banner autopluto-decision-banner--good">
+        <span class="autopluto-decision-icon">✅</span>
+        <div>
+          <div class="autopluto-decision-title">Good room to bid</div>
+          <div class="autopluto-decision-subtitle">${fmt(margin)} below recommended max bid</div>
+        </div>
+      </div>`;
+    }
+    if (margin >= 0) {
+      return `<div class="autopluto-decision-banner autopluto-decision-banner--caution">
+        <span class="autopluto-decision-icon">⚠️</span>
+        <div>
+          <div class="autopluto-decision-title">Close to limit</div>
+          <div class="autopluto-decision-subtitle">Only ${fmt(margin)} below max bid</div>
+        </div>
+      </div>`;
+    }
+    return `<div class="autopluto-decision-banner autopluto-decision-banner--danger">
+      <span class="autopluto-decision-icon">🚫</span>
+      <div>
+        <div class="autopluto-decision-title">Above recommended max</div>
+        <div class="autopluto-decision-subtitle">${fmt(Math.abs(margin))} over max bid</div>
+      </div>
+    </div>`;
+  }
+
+  function buildBadgeItem(label, value, color) {
+    return `<div class="autopluto-badge-item autopluto-badge-item--${esc(color)}">
+      <span class="autopluto-badge-item-label">${esc(label)}</span>
+      <span class="autopluto-badge-item-value">${esc(String(value))}</span>
+    </div>`;
+  }
+
+  function getConfidenceColor(level) {
+    if (!level) return 'gray';
+    const l = level.toLowerCase();
+    if (l.includes('high'))   return 'green';
+    if (l.includes('low'))    return 'red';
+    return 'yellow';
+  }
+
+  function getSafetyColor(level) {
+    if (!level) return 'gray';
+    const l = level.toLowerCase();
+    if ((l.includes('safe') || l === 'low risk') && !l.includes('very') && !l.includes('un')) return 'green';
+    if (l.includes('moderate') || l.includes('medium') || l === 'medium risk') return 'yellow';
+    if (l.includes('risky') || l.includes('danger') || l.includes('high risk') || l.includes('very')) return 'red';
+    return 'yellow';
+  }
+
+  function getFallbackColor(level) {
+    if (!level) return 'gray';
+    const l = level.toLowerCase();
+    if (l === 'exact' || l === 'local')    return 'green';
+    if (l === 'regional')                  return 'yellow';
+    if (l === 'global' || l === 'unknown') return 'yellow';
+    return 'gray';
+  }
+
+  function buildDataQuality(vehicleData) {
+    const fields = [
+      { label: 'VIN',      val: vehicleData.vin },
+      { label: 'Mileage',  val: vehicleData.mileage },
+      { label: 'City',     val: vehicleData.cityAuction },
+      { label: 'Seller',   val: vehicleData.sellerName },
+      { label: 'Trim',     val: vehicleData.trim },
+      { label: 'Drive',    val: vehicleData.drivetrain },
+      { label: 'Fuel',     val: vehicleData.fuelType },
+      { label: 'Engine',   val: vehicleData.engine },
+    ];
+
+    const fieldHtml = fields.map((f) => {
+      const ok = f.val != null && f.val !== '';
+      return `<div class="autopluto-data-field autopluto-data-field--${ok ? 'ok' : 'miss'}">
+        <span class="autopluto-data-field-dot"></span>
+        <span>${esc(f.label)}</span>
+      </div>`;
+    }).join('');
+
+    const missing = fields.filter((f) => !f.val).map((f) => f.label);
+    const missingNote = missing.length
+      ? `<div class="autopluto-data-missing-note">Missing: ${esc(missing.join(', '))}</div>`
+      : '';
+
+    return `<div class="autopluto-data-quality">
+      <div class="autopluto-data-quality-title">Input Coverage</div>
+      <div class="autopluto-data-quality-grid">${fieldHtml}</div>
+      ${missingNote}
+    </div>`;
+  }
+
+  function buildReportNotes(result) {
+    const notes = [];
+
+    if (result.comparable_count != null) {
+      notes.push(`${result.comparable_count} comparable vehicle${result.comparable_count !== 1 ? 's' : ''} found`);
+    }
+    if (result.market_fallback_level) {
+      notes.push(`Market fallback used: ${result.market_fallback_level}`);
+    }
+    if (result.calibration_version) {
+      notes.push(`Calibration applied: ${result.calibration_version}`);
+    } else {
+      notes.push('Calibration artifact not available');
+    }
+    if (result.model_version) {
+      notes.push(`Model version: ${result.model_version}`);
+    }
+    notes.push('No CARFAX / condition data included');
+
+    // Include any extra reason parts not already covered above
+    if (result.reason) {
+      const skip = ['comparable', 'fallback', 'calibration', 'carfax', 'condition', 'model version', 'no carfax'];
+      result.reason.split(' · ')
+        .map((s) => s.trim())
+        .filter((s) => s && !skip.some((k) => s.toLowerCase().includes(k)))
+        .forEach((s) => notes.push(s));
+    }
+
+    return `<div class="autopluto-report-notes">
+      <div class="autopluto-report-notes-title">Report Notes</div>
+      <ul class="autopluto-report-notes-list">${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+    </div>`;
+  }
+
   function showLoadingPopover(rowEl, vehicleTitle) {
     closeActivePopover();
 
@@ -606,12 +744,18 @@
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
     card.innerHTML = `
-      <div class="autopluto-card-header autopluto-popover-header">
-        <span class="autopluto-card-title">Auction Price Estimate</span>
-        <button class="autopluto-card-close autopluto-close-btn" title="Close">✕</button>
+      <div class="autopluto-card-header">
+        <div class="autopluto-header-top">
+          <div class="autopluto-header-title-group">
+            <div class="autopluto-card-title">${esc(vehicleTitle || 'Auction Price Estimate')}</div>
+            <div class="autopluto-header-badges">
+              <span class="autopluto-badge-ai">AI Estimate</span>
+            </div>
+          </div>
+          <button class="autopluto-card-close" title="Close">✕</button>
+        </div>
       </div>
       <div class="autopluto-card-body">
-        <div class="autopluto-skeleton-vehicle">${esc(vehicleTitle || 'Loading vehicle…')}</div>
         <div class="autopluto-skeleton-status">Fetching estimate…</div>
         <div class="autopluto-skeleton-bar"></div>
         <div class="autopluto-skeleton-bar autopluto-skeleton-bar-sm"></div>
@@ -639,97 +783,153 @@
     const currentPrice    = vehicleData.metadata?.currentAuctionPrice;
     const hasCurrentPrice = currentPrice != null;
     const margin          = hasCurrentPrice && rmb != null ? rmb - currentPrice : null;
-    const badgeInfo       = getBadgeInfo(margin, hasCurrentPrice && rmb != null);
     const bidGtEmp        = emp != null && rmb != null && rmb > emp;
 
     const card = document.createElement('div');
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
 
-    let marginHtml = '';
-    if (hasCurrentPrice && rmb != null) {
-      const sign = margin >= 0 ? '+' : '';
-      marginHtml = `
-        <div class="autopluto-row">
-          <span class="autopluto-label">Margin to Max Bid</span>
-          <span class="autopluto-badge ${badgeInfo.cls}">${sign}${fmt(margin)} – ${badgeInfo.label}</span>
-        </div>`;
-    }
+    // ── Price grid ──────────────────────────────────────────────
+    const currentPriceCard = hasCurrentPrice ? `
+      <div class="autopluto-price-card autopluto-price-card--current">
+        <div class="autopluto-price-card-label">Current Bid</div>
+        <div class="autopluto-price-card-value">${fmt(currentPrice)}</div>
+      </div>` : '';
 
+    // ── Decision banner ─────────────────────────────────────────
+    const decisionHtml = buildDecisionBanner(margin, hasCurrentPrice && rmb != null);
+
+    // ── Warnings ────────────────────────────────────────────────
     let warningHtml = '';
     if (bidGtEmp) {
-      warningHtml = `<div class="autopluto-warning">⚠ Recommended max bid exceeds estimated market price. Review before bidding.</div>`;
+      warningHtml += `<div class="autopluto-warning-banner">⚠ Recommended max bid exceeds estimated market price. Review before bidding.</div>`;
     }
     if (!vehicleData.vin) {
-      warningHtml += `<div class="autopluto-warning autopluto-warning-mild">⚠ VIN not detected – estimate may be less accurate.</div>`;
-    }
-    const missing = getMissingFields(vehicleData);
-    if (missing.length) {
-      warningHtml += `<div class="autopluto-warning autopluto-warning-mild">⚠ Missing fields: ${esc(missing.join(', '))}</div>`;
+      warningHtml += `<div class="autopluto-warning-banner">⚠ VIN not detected — estimate may be less accurate.</div>`;
     }
 
-    const confidenceCls = result.confidence_level
-      ? (result.confidence_level.toLowerCase().includes('high') ? 'autopluto-badge-safe'
-        : result.confidence_level.toLowerCase().includes('low') ? 'autopluto-badge-danger'
-        : 'autopluto-badge-warning')
-      : '';
+    // ── Badge pills ─────────────────────────────────────────────
+    let badgesHtml = '';
+    if (result.confidence_level) {
+      badgesHtml += buildBadgeItem('Confidence', result.confidence_level, getConfidenceColor(result.confidence_level));
+    }
+    if (result.bid_safety_level) {
+      badgesHtml += buildBadgeItem('Safety', result.bid_safety_level, getSafetyColor(result.bid_safety_level));
+    }
+    if (result.comparable_count != null) {
+      badgesHtml += buildBadgeItem('Comps', String(result.comparable_count), 'blue');
+    }
+    if (result.market_fallback_level) {
+      badgesHtml += buildBadgeItem('Fallback', result.market_fallback_level, getFallbackColor(result.market_fallback_level));
+    }
 
-    const safetyCls = result.bid_safety_level
-      ? (result.bid_safety_level.toLowerCase().includes('safe') ? 'autopluto-badge-safe'
-        : result.bid_safety_level.toLowerCase().includes('danger') || result.bid_safety_level.toLowerCase().includes('high risk') ? 'autopluto-badge-danger'
-        : 'autopluto-badge-warning')
-      : '';
+    // ── Header model badge ──────────────────────────────────────
+    const modelBadge = result.model_version
+      ? `<span class="autopluto-badge-model">${esc(result.model_version)}</span>` : '';
+
+    // ── Collapsible debug panel ─────────────────────────────────
+    const debugPayload = JSON.stringify(
+      { vehicle: vehicleData, result: result._raw },
+      null, 2
+    );
 
     card.innerHTML = `
-      <div class="autopluto-card-header autopluto-popover-header">
-        <span class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</span>
-        <button class="autopluto-card-close autopluto-close-btn" title="Close">✕</button>
+      <div class="autopluto-card-header">
+        <div class="autopluto-header-top">
+          <div class="autopluto-header-title-group">
+            <div class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</div>
+            <div class="autopluto-header-badges">
+              <span class="autopluto-badge-ai">AI Estimate</span>
+              ${modelBadge}
+            </div>
+          </div>
+          <button class="autopluto-card-close" title="Close">✕</button>
+        </div>
+        <div class="autopluto-header-meta">
+          ${vehicleData.vin ? `<span class="autopluto-card-vin">VIN: ${esc(vehicleData.vin)}</span>` : '<span class="autopluto-card-vin" style="color:rgba(255,180,50,.7)">VIN: not detected</span>'}
+          ${vehicleData.mileage ? `<span class="autopluto-mileage-tag">◎ ${fmtNum(vehicleData.mileage)}</span>` : ''}
+        </div>
       </div>
+
       <div class="autopluto-card-body">
-        <div class="autopluto-row autopluto-row-sub">
-          <span class="autopluto-label-sm">VIN</span>
-          <span class="autopluto-val-sm">${esc(vehicleData.vin || '—')}</span>
-          <span class="autopluto-label-sm">Mileage</span>
-          <span class="autopluto-val-sm">${fmtNum(vehicleData.mileage)}</span>
-        </div>
-        <div class="autopluto-prices autopluto-price-grid">
-          <div class="autopluto-price-block autopluto-price-primary">
-            <div class="autopluto-price-label">Est. Market Price</div>
-            <div class="autopluto-price-value autopluto-price-main">${fmt(emp)}</div>
+
+        <div class="autopluto-price-grid">
+          <div class="autopluto-price-card autopluto-price-card--market">
+            <div class="autopluto-price-card-label">Est. Market Price</div>
+            <div class="autopluto-price-card-value">${fmt(emp)}</div>
           </div>
-          <div class="autopluto-price-block autopluto-price-secondary">
-            <div class="autopluto-price-label">Rec. Max Bid</div>
-            <div class="autopluto-price-value autopluto-price-bid">${fmt(rmb)}</div>
+          <div class="autopluto-price-card autopluto-price-card--main">
+            <div class="autopluto-price-card-label">Rec. Max Bid</div>
+            <div class="autopluto-price-card-value">${fmt(rmb)}</div>
           </div>
-          ${hasCurrentPrice ? `
-          <div class="autopluto-price-block">
-            <div class="autopluto-price-label">Current Price</div>
-            <div class="autopluto-price-value autopluto-price-current">${fmt(currentPrice)}</div>
-          </div>` : ''}
+          ${currentPriceCard}
         </div>
-        ${marginHtml}
-        <div class="autopluto-divider"></div>
-        <div class="autopluto-meta">
-          ${result.confidence_level ? `<span class="autopluto-meta-item">Confidence: <span class="autopluto-badge ${confidenceCls}">${esc(result.confidence_level)}</span></span>` : ''}
-          ${result.bid_safety_level ? `<span class="autopluto-meta-item">Safety: <span class="autopluto-badge ${safetyCls}">${esc(result.bid_safety_level)}</span></span>` : ''}
-          ${result.comparable_count != null ? `<span class="autopluto-meta-item">Comparables: <strong>${result.comparable_count}</strong></span>` : ''}
-        </div>
-        <div class="autopluto-meta autopluto-meta-versions">
-          ${result.model_version ? `<span class="autopluto-meta-item">Model: <strong>${esc(result.model_version)}</strong></span>` : ''}
-          ${result.calibration_version ? `<span class="autopluto-meta-item">Cal: <strong>${esc(result.calibration_version)}</strong></span>` : ''}
-          ${result.market_fallback_level ? `<span class="autopluto-meta-item">Fallback: <strong>${esc(result.market_fallback_level)}</strong></span>` : ''}
-        </div>
-        ${result.reason ? `<div class="autopluto-reason">${esc(result.reason)}</div>` : ''}
+
+        ${decisionHtml}
         ${warningHtml}
+
+        ${badgesHtml ? `<div class="autopluto-badges-section">${badgesHtml}</div>` : ''}
+
+        ${buildDataQuality(vehicleData)}
+        ${buildReportNotes(result)}
+
+        <div class="autopluto-debug-panel">
+          <button class="autopluto-debug-toggle">
+            <span>⌥ Debug Details</span>
+            <span class="autopluto-debug-arrow">▶</span>
+          </button>
+          <div class="autopluto-debug-content">
+            <pre class="autopluto-debug-pre">${esc(debugPayload)}</pre>
+          </div>
+        </div>
+
       </div>
+
       <div class="autopluto-card-footer">
-        <button class="autopluto-refresh-btn">↻ Refresh</button>
+        <button class="autopluto-footer-btn autopluto-footer-btn--primary autopluto-refresh-btn">↻ Refresh</button>
+        <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-copy-result-btn">⎘ Copy Result</button>
       </div>
     `;
 
+    // Close
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
       e.stopPropagation();
       closeActivePopover();
+    });
+
+    // Debug toggle
+    const debugToggle  = card.querySelector('.autopluto-debug-toggle');
+    const debugContent = card.querySelector('.autopluto-debug-content');
+    const debugArrow   = card.querySelector('.autopluto-debug-arrow');
+    debugToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = debugContent.classList.toggle('autopluto-debug-open');
+      if (debugArrow) debugArrow.textContent = open ? '▼' : '▶';
+      positionPopover(card, rowEl);
+    });
+
+    // Copy result
+    card.querySelector('.autopluto-copy-result-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      const summary = {
+        vehicle:               vehicleData.titleFull      || null,
+        vin:                   vehicleData.vin             || null,
+        mileage_km:            vehicleData.mileage         || null,
+        estimated_market_price: emp,
+        recommended_max_bid:   rmb,
+        current_price:         currentPrice               || null,
+        margin_to_max_bid:     margin,
+        confidence:            result.confidence_level    || null,
+        safety:                result.bid_safety_level    || null,
+        comparables:           result.comparable_count,
+        fallback:              result.market_fallback_level || null,
+        model:                 result.model_version       || null,
+      };
+      navigator.clipboard.writeText(JSON.stringify(summary, null, 2)).then(() => {
+        btn.textContent = '✓ Copied';
+        setTimeout(() => { btn.textContent = '⎘ Copy Result'; }, 2000);
+      });
     });
 
     document.body.appendChild(card);
@@ -773,14 +973,21 @@
     card.className = 'autopluto-card autopluto-popover autopluto-card-error';
     card.setAttribute('data-autopluto-card', 'true');
     card.innerHTML = `
-      <div class="autopluto-card-header autopluto-popover-header">
-        <span class="autopluto-card-title">⚠ ${esc(title)}</span>
-        <button class="autopluto-card-close autopluto-close-btn" title="Close">✕</button>
+      <div class="autopluto-card-header autopluto-card-header--error">
+        <div class="autopluto-header-top">
+          <div class="autopluto-header-title-group">
+            <div class="autopluto-card-title">⚠ ${esc(title)}</div>
+            <div class="autopluto-header-badges">
+              <span class="autopluto-badge-ai">AI Estimate</span>
+            </div>
+          </div>
+          <button class="autopluto-card-close" title="Close">✕</button>
+        </div>
       </div>
       <div class="autopluto-card-body">
         <p class="autopluto-error-msg">${esc(detail)}</p>
         ${detailExtra}
-        ${copyPayload ? '<button class="autopluto-copy-payload-btn">Copy payload</button>' : ''}
+        ${copyPayload ? '<button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-copy-payload-btn" style="margin-top:6px;">Copy payload</button>' : ''}
       </div>
     `;
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
@@ -790,8 +997,9 @@
     if (copyPayload) {
       card.querySelector('.autopluto-copy-payload-btn').addEventListener('click', (e) => {
         e.stopPropagation();
+        const btn = e.currentTarget;
         navigator.clipboard.writeText(copyPayload).then(() => {
-          e.target.textContent = 'Copied ✓';
+          btn.textContent = 'Copied ✓';
         });
       });
     }
