@@ -1,20 +1,101 @@
 # OPENLANE Estimator Extension — UI Update Report
 
-**Date:** 2026-05-12 (v5 — professional dark report card UI)
-**Scope:** Chrome Extension — Full popover/result card redesign
-**Files modified:** `content.js`, `styles.css`
+**Date:** 2026-05-13 (v6 — Estimate tab side-tab UI refinement)
+**Scope:** Chrome Extension — Side-tab handle styling and hover behavior
+**Files modified:** `styles.css`
 
 ---
 
 ## 1. Summary of Changes
 
-### v5 (this update)
+### v6 (this update)
+
+Refined the Estimate side-tab (`$` handle) that appears to the right of each vehicle row. Corrected border-radius so the left edge is completely flush against the row boundary (zero curve), kept the right edge slightly rounded, adjusted hover behavior so the "Estimate" label only expands when hovering directly over the `$` tab itself (not on general row hover), and lightened the blue color palette for a cleaner look.
+
+### v5 (previous)
 
 Complete visual overhaul of the estimate result popover. Replaced the basic white tooltip-style card with a professional, dark-themed estimate report card. No build system added — all changes are plain CSS and vanilla JS.
 
 ---
 
-## 2. UI Changes Made
+## 2. v6 UI Changes Made
+
+### Handle shape
+- **Before:** `border-radius: 7px 0 0 7px` — left edge was rounded (visually detached from row boundary)
+- **After:** `border-radius: 0 6px 6px 0` — left edge is completely flush (zero curve), only the right edge is rounded
+
+### Expanded label shape
+- **Before:** `border-radius: 0 7px 7px 0`
+- **After:** `border-radius: 0 6px 6px 0` — consistent, right-only rounding across both handle and label
+
+### Handle color
+- **Before:** `linear-gradient(180deg, #2563eb, #1d4ed8)` — heavy dark blue
+- **After:** `linear-gradient(180deg, #4f8df7, #2f6fe6)` — lighter, softer blue
+
+### Expanded label color
+- **Before:** `linear-gradient(180deg, #1d4ed8, #1e40af)` — heavy dark navy
+- **After:** `linear-gradient(180deg, #3f7ff0, #2d62d6)` — lighter, professional blue
+
+### Shadow reduction
+- Handle shadow: `0 2px 8px rgba(37,99,235,0.35)` → `0 1px 5px rgba(47,111,230,0.28)` (lighter)
+- Label shadow: `0 2px 10px rgba(30,64,175,0.35)` → `0 1px 7px rgba(45,98,214,0.28)` (lighter)
+
+### Hover behavior fix
+- **Before:** Both `tr` row hover and direct tab hover expanded the "Estimate" label:
+  ```css
+  .autopluto-estimate-tab:hover .autopluto-estimate-label,
+  .autopluto-estimate-tab.autopluto-tab-row-hover .autopluto-estimate-label { ... }
+  ```
+- **After:** Only direct tab hover expands the label:
+  ```css
+  .autopluto-estimate-tab:hover .autopluto-estimate-label { ... }
+  ```
+- Row hover (`autopluto-tab-row-hover`) still makes the `$` handle **visible** (opacity: 1) — but the label stays hidden until the user hovers directly over the tab.
+
+---
+
+## 3. Behavior Summary
+
+| Event | Result |
+|-------|--------|
+| Mouse enters vehicle row | `$` handle appears (opacity 1) |
+| Mouse leaves vehicle row | `$` handle fades out (opacity 0), unless mouse is over the tab |
+| Mouse hovers over `$` tab | `$` handle visible + "Estimate" label slides out |
+| Mouse leaves `$` tab | Label collapses back |
+| Click on tab | Opens estimate popover (unchanged) |
+
+---
+
+## 4. Tests to Perform
+
+| Test | Expected |
+|------|----------|
+| Hover over a vehicle row | Only `$` handle appears, label stays hidden |
+| Move mouse onto the `$` tab | Label slides out showing "Estimate" |
+| Move mouse off the `$` tab | Label collapses |
+| Inspect left edge of `$` handle | Zero curve, perfectly flush to the right edge of the table row |
+| Inspect right edge of `$` handle | Slight rounding (6 px) |
+| Blue color of handle | Lighter blue (≈ #4f8df7 → #2f6fe6 gradient), not the old heavy navy |
+| Click the tab | Estimate popover opens correctly |
+| After DOM refresh (row reinjection) | Tab still works, no duplicates |
+
+---
+
+## 5. Acceptance Criteria
+
+- [x] Left edge has zero border-radius — completely flush to row boundary
+- [x] Only the right edge is rounded (6 px)
+- [x] Row hover shows only the `$` handle
+- [x] Tab hover expands to "Estimate" label
+- [x] Blue tone is lighter and cleaner
+- [x] Shadow is softer
+- [x] Popover still opens on click
+- [x] No duplicate tabs or layout breakage
+- [x] Works after DOM refresh
+
+---
+
+## 6. v5 UI Changes (preserved reference)
 
 ### Overall card
 - **Dark background:** `#111827` (gray-900 / Tailwind-style)

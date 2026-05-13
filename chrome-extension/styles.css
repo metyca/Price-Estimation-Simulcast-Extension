@@ -66,12 +66,12 @@
   left: 0 !important;
   width: 26px !important;
   height: 100% !important;
-  background: linear-gradient(180deg, #2563eb, #1d4ed8) !important;
-  border-radius: 7px 0 0 7px !important;
+  background: linear-gradient(180deg, #4f8df7, #2f6fe6) !important;
+  border-radius: 0 6px 6px 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35) !important;
+  box-shadow: 0 1px 5px rgba(47, 111, 230, 0.28) !important;
   box-sizing: border-box !important;
 }
 
@@ -94,10 +94,10 @@
   opacity: 0 !important;
   transform: translateX(-6px) !important;
   pointer-events: none !important;
-  border-radius: 0 7px 7px 0 !important;
-  background: linear-gradient(180deg, #1d4ed8, #1e40af) !important;
+  border-radius: 0 6px 6px 0 !important;
+  background: linear-gradient(180deg, #3f7ff0, #2d62d6) !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 10px rgba(30, 64, 175, 0.35) !important;
+  box-shadow: 0 1px 7px rgba(45, 98, 214, 0.28) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -112,8 +112,7 @@
   box-sizing: border-box !important;
 }
 
-.autopluto-estimate-tab:hover .autopluto-estimate-label,
-.autopluto-estimate-tab.autopluto-tab-row-hover .autopluto-estimate-label {
+.autopluto-estimate-tab:hover .autopluto-estimate-label {
   opacity: 1 !important;
   transform: translateX(0) !important;
   pointer-events: auto !important;
