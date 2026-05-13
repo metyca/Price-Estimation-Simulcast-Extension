@@ -1,24 +1,62 @@
 # OPENLANE Estimator Extension — UI Update Report
 
-**Date:** 2026-05-13 (v6 — Estimate tab side-tab UI refinement)
-**Scope:** Chrome Extension — Side-tab handle styling and hover behavior
+**Date:** 2026-05-13 (v7 — Flush join between `$` handle and Estimate label)
+**Scope:** Chrome Extension — Side-tab handle + label seamless join
 **Files modified:** `styles.css`
 
 ---
 
 ## 1. Summary of Changes
 
-### v6 (this update)
+### v7 (this update)
+
+Made the `$` handle and "Estimate" label join as a single seamless block. Removed all border-radius from the handle (no rounding on either side), kept the right-only rounding on the label, and refined the blue gradient palette to a cleaner, more professional tone. The two pieces now appear as one continuous blue UI control.
+
+### v6 (previous)
 
 Refined the Estimate side-tab (`$` handle) that appears to the right of each vehicle row. Corrected border-radius so the left edge is completely flush against the row boundary (zero curve), kept the right edge slightly rounded, adjusted hover behavior so the "Estimate" label only expands when hovering directly over the `$` tab itself (not on general row hover), and lightened the blue color palette for a cleaner look.
 
-### v5 (previous)
+### v5 (before v6)
 
 Complete visual overhaul of the estimate result popover. Replaced the basic white tooltip-style card with a professional, dark-themed estimate report card. No build system added — all changes are plain CSS and vanilla JS.
 
 ---
 
-## 2. v6 UI Changes Made
+## 2. v7 UI Changes Made
+
+### Handle shape
+- **Before (v6):** `border-radius: 0 6px 6px 0` — right edge was rounded, causing a visible gap/curve where the handle meets the label
+- **After (v7):** `border-radius: 0` — completely rectangular on all sides; sits perfectly flush against the label
+
+### Expanded label shape
+- **Unchanged:** `border-radius: 0 6px 6px 0` — only the outer right edge is rounded; the left edge (where it meets the handle) is perfectly straight
+
+### Handle color
+- **Before (v6):** `linear-gradient(180deg, #4f8df7, #2f6fe6)`
+- **After (v7):** `linear-gradient(180deg, #4A90F5, #2F6FE4)` — slightly cleaner, more professional tone
+
+### Expanded label color
+- **Before (v6):** `linear-gradient(180deg, #3f7ff0, #2d62d6)`
+- **After (v7):** `linear-gradient(180deg, #3F82F0, #285FD6)` — consistent modern blue
+
+### Shadow
+- Handle shadow **removed** entirely — no shadow on the join boundary; clean flush appearance
+- Label shadow: outer-only (`2px 0 8px`) so the shadow only bleeds outward, not inward toward the handle
+
+### Final joined shape
+| Edge | Rounding |
+|------|----------|
+| Left edge of `$` handle | straight (0) |
+| Right edge of `$` handle | straight (0) — joins flush with label |
+| Left edge of Estimate label | straight (0) — joins flush with handle |
+| Right edge of Estimate label | 6 px rounded (outer edge only) |
+
+### Hover behavior (unchanged from v6)
+- Row hover → `$` handle becomes visible
+- Tab hover → "Estimate" label slides out
+- Row hover alone does NOT expand the label
+
+## 3. v6 UI Changes (preserved reference)
 
 ### Handle shape
 - **Before:** `border-radius: 7px 0 0 7px` — left edge was rounded (visually detached from row boundary)
@@ -54,41 +92,44 @@ Complete visual overhaul of the estimate result popover. Replaced the basic whit
 
 ---
 
-## 3. Behavior Summary
+## 4. Behavior Summary (v7)
 
 | Event | Result |
 |-------|--------|
 | Mouse enters vehicle row | `$` handle appears (opacity 1) |
 | Mouse leaves vehicle row | `$` handle fades out (opacity 0), unless mouse is over the tab |
-| Mouse hovers over `$` tab | `$` handle visible + "Estimate" label slides out |
+| Mouse hovers over `$` tab | `$` handle + "Estimate" label visible as one seamless block |
 | Mouse leaves `$` tab | Label collapses back |
 | Click on tab | Opens estimate popover (unchanged) |
 
 ---
 
-## 4. Tests to Perform
+## 5. Tests to Perform (v7)
 
 | Test | Expected |
 |------|----------|
 | Hover over a vehicle row | Only `$` handle appears, label stays hidden |
-| Move mouse onto the `$` tab | Label slides out showing "Estimate" |
+| Move mouse onto the `$` tab | Label slides out flush with the `$` handle — no visible seam |
 | Move mouse off the `$` tab | Label collapses |
-| Inspect left edge of `$` handle | Zero curve, perfectly flush to the right edge of the table row |
-| Inspect right edge of `$` handle | Slight rounding (6 px) |
-| Blue color of handle | Lighter blue (≈ #4f8df7 → #2f6fe6 gradient), not the old heavy navy |
+| Inspect right edge of `$` handle | No rounding — perfectly straight where it meets the label |
+| Inspect right edge of "Estimate" label | Slight rounding (6 px) — outer edge only |
+| Inspect join between `$` and "Estimate" | Flush, seamless — looks like one continuous blue block |
+| Blue color of handle | `#4A90F5 → #2F6FE4` — clean, modern blue |
+| Blue color of label | `#3F82F0 → #285FD6` — slightly deeper, consistent |
 | Click the tab | Estimate popover opens correctly |
 | After DOM refresh (row reinjection) | Tab still works, no duplicates |
 
 ---
 
-## 5. Acceptance Criteria
+## 6. Acceptance Criteria (v7)
 
-- [x] Left edge has zero border-radius — completely flush to row boundary
-- [x] Only the right edge is rounded (6 px)
+- [x] `$` handle has `border-radius: 0` — no rounding on any edge
+- [x] "Estimate" label has `border-radius: 0 6px 6px 0` — only outer right edge rounded
+- [x] `$` handle and "Estimate" label are perfectly flush (no visible seam)
+- [x] Blue color is improved (`#4A90F5/#2F6FE4` handle, `#3F82F0/#285FD6` label)
+- [x] No shadow on handle (clean join)
 - [x] Row hover shows only the `$` handle
 - [x] Tab hover expands to "Estimate" label
-- [x] Blue tone is lighter and cleaner
-- [x] Shadow is softer
 - [x] Popover still opens on click
 - [x] No duplicate tabs or layout breakage
 - [x] Works after DOM refresh
