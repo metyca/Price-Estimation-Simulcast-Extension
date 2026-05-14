@@ -781,9 +781,40 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // MODULAR UI BUILDER FUNCTIONS  (premium redesign v7)
+  // MODULAR UI BUILDER FUNCTIONS  (premium redesign v8)
   // ══════════════════════════════════════════════════════════════════════════
 
+  /** Compact price label: $32.5k */
+  function fmtShort(num) {
+    if (num == null) return 'N/A';
+    if (Math.abs(num) >= 1000) return '$' + (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return '$' + Math.round(num);
+  }
+
+  /** Map confidence level string → percentage for meter */
+  function getConfidencePercent(level) {
+    if (!level) return 0;
+    const l = level.toLowerCase();
+    if (l.includes('very_high') || l.includes('very high')) return 95;
+    if (l.includes('high'))   return 82;
+    if (l.includes('medium') || l.includes('moderate')) return 54;
+    if (l.includes('low'))    return 22;
+    return 40;
+  }
+
+  /** Scan raw API response for a comparable-vehicle list */
+  function parseComparables(raw) {
+    const candidates = [
+      raw.comparable_vehicles, raw.comparables, raw.comparable_list,
+      raw.comp_vehicles, raw.similar_vehicles, raw.market_comparables,
+    ];
+    for (const c of candidates) {
+      if (Array.isArray(c) && c.length > 0) return c;
+    }
+    return null;
+  }
+
+  // ── A. Header ────────────────────────────────────────────────
   function buildHeaderSection(vehicleData, result) {
     const modelBadge = result.model_version
       ? `<span class="autopluto-badge-model">${esc(result.model_version)}</span>` : '';
@@ -820,27 +851,43 @@
       </div>`;
   }
 
-  function buildPrimaryPriceCards(emp, rmb, currentPrice, hasCurrentPrice) {
+  // ── B. Primary Intelligence Section ─────────────────────────
+  // EMP is the HERO. Confidence is tightly coupled with it.
+  // RMB and Current Bid are visually secondary (right column).
+  function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct) {
+    const confHtml = confidence
+      ? `<div class="autopluto-emp-conf">
+           <div class="autopluto-emp-conf-meter">
+             <div class="autopluto-emp-conf-fill autopluto-emp-conf-fill--${esc(confColor)}" style="width:${confPct}%"></div>
+           </div>
+           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--${esc(confColor)}">${esc(confidence.replace(/_/g, ' '))}</span>
+         </div>`
+      : `<div class="autopluto-emp-conf">
+           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--gray">Confidence N/A</span>
+         </div>`;
+
     return `
-      <div class="autopluto-pricing-section">
-        <div class="autopluto-price-card autopluto-price-card--rmb">
-          <div class="autopluto-price-card-label">Recommended Max Bid</div>
-          <div class="autopluto-price-card-value">${fmt(rmb)}</div>
-          <div class="autopluto-price-card-sub">Your ceiling price</div>
+      <div class="autopluto-primary-intel">
+        <div class="autopluto-emp-hero">
+          <div class="autopluto-emp-hero-label">Estimated Market Price</div>
+          <div class="autopluto-emp-hero-value">${fmt(emp)}</div>
+          ${confHtml}
         </div>
-        <div class="autopluto-pricing-secondary-row">
-          <div class="autopluto-price-card autopluto-price-card--emp">
-            <div class="autopluto-price-card-label">Est. Market Price</div>
-            <div class="autopluto-price-card-value">${fmt(emp)}</div>
+        <div class="autopluto-right-stack">
+          <div class="autopluto-rmb-mini">
+            <div class="autopluto-rmb-mini-label">Rec. Max Bid</div>
+            <div class="autopluto-rmb-mini-value">${fmt(rmb)}</div>
+            <div class="autopluto-rmb-mini-sub">Your ceiling</div>
           </div>
-          <div class="autopluto-price-card autopluto-price-card--bid">
-            <div class="autopluto-price-card-label">Current Bid</div>
-            <div class="autopluto-price-card-value">${hasCurrentPrice ? fmt(currentPrice) : '—'}</div>
+          <div class="autopluto-bid-mini">
+            <div class="autopluto-bid-mini-label">Current Bid</div>
+            <div class="autopluto-bid-mini-value${!hasCurrentPrice ? ' autopluto-bid-mini-value--none' : ''}">${hasCurrentPrice ? fmt(currentPrice) : '—'}</div>
           </div>
         </div>
       </div>`;
   }
 
+  // ── C. Decision Insight Bar (compact secondary status) ───────
   function buildDecisionInsight(margin, canCalculate) {
     if (!canCalculate || margin === null) {
       return `<div class="autopluto-insight-bar autopluto-insight-bar--neutral">
@@ -878,6 +925,7 @@
     </div>`;
   }
 
+  // ── D. Expected Market Range (premium range rail) ────────────
   function buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice) {
     if (rangeLow == null && rangeHigh == null) return '';
 
@@ -915,8 +963,10 @@
           ${markers.map((m) => `
             <div class="autopluto-range-legend-item">
               <span class="autopluto-range-legend-dot autopluto-range-legend-dot--${m.cls}"></span>
-              <span class="autopluto-range-legend-lbl">${esc(m.label)}</span>
-              <span class="autopluto-range-legend-val">${esc(m.value)}</span>
+              <div class="autopluto-range-legend-info">
+                <span class="autopluto-range-legend-lbl">${esc(m.label)}</span>
+                <span class="autopluto-range-legend-val">${esc(m.value)}</span>
+              </div>
             </div>`).join('')}
         </div>`;
       }
@@ -935,53 +985,218 @@
       </div>`;
   }
 
-  function buildConfidenceSection(result, compQuality) {
-    const confidence = result.confidence_level;
-    const safety     = result.bid_safety_level;
-    const comps      = result.comparable_count;
-    const fallback   = result.market_fallback_level;
+  // ── E. Comparable Vehicles Chart (SVG scatter plot) ──────────
+  function buildComparablesChart(raw, emp) {
+    const comps     = parseComparables(raw);
+    const compCount = raw.comparables_found ?? (comps ? comps.length : null);
 
-    if (!confidence && !safety && comps == null && !fallback && !compQuality) return '';
+    const headerHtml = `
+      <div class="autopluto-comps-header">
+        <div class="autopluto-comps-title">Comparable Vehicles</div>
+        ${compCount != null ? `<span class="autopluto-comps-count-badge">${compCount} used</span>` : ''}
+      </div>`;
 
-    const confColor = getConfidenceColor(confidence);
-    const confPct   = !confidence ? 0
-      : confidence.toLowerCase().includes('high')   ? 88
-      : confidence.toLowerCase().includes('medium') ? 54
-      : 20;
-
-    const indicators = [];
-    if (safety)      indicators.push({ label: 'Safety',   value: safety.replace(/_/g, ' '),      color: getSafetyColor(safety) });
-    if (comps != null) indicators.push({ label: 'Comps',  value: String(comps),                  color: comps > 0 ? 'blue' : 'gray' });
-    if (compQuality) {
-      const qc = compQuality.toLowerCase();
-      const qColor = (qc === 'good' || qc === 'high') ? 'green' : (qc === 'unreliable' || qc === 'low') ? 'red' : 'yellow';
-      indicators.push({ label: 'Quality',  value: compQuality.replace(/_/g, ' '),  color: qColor });
+    if (!comps || comps.length === 0) {
+      const emptyMsg = (compCount != null && compCount > 0)
+        ? `${compCount} comparable${compCount !== 1 ? 's' : ''} contributed to estimate — detailed vehicle data not in response.`
+        : 'No comparable vehicle data available for visualization.';
+      return `
+        <div class="autopluto-comps-card">
+          ${headerHtml}
+          <div class="autopluto-comps-empty">
+            <span class="autopluto-comps-empty-icon">◎</span>
+            <span class="autopluto-comps-empty-text">${esc(emptyMsg)}</span>
+          </div>
+        </div>`;
     }
-    if (fallback)    indicators.push({ label: 'Fallback', value: fallback.replace(/_/g, ' '),    color: getFallbackColor(fallback) });
 
-    const confMainHtml = confidence ? `
-      <div class="autopluto-conf-main">
-        <div class="autopluto-conf-header-row">
-          <span class="autopluto-conf-section-label">Confidence</span>
-          <span class="autopluto-conf-level-badge autopluto-conf-level-badge--${confColor}">${esc(confidence.replace(/_/g, ' '))}</span>
+    const prices = comps.map((c) =>
+      c.price ?? c.sale_price ?? c.listing_price ?? c.market_price ?? c.value ?? null
+    );
+    const validPrices = prices.filter((p) => p != null);
+
+    if (validPrices.length === 0) {
+      return `
+        <div class="autopluto-comps-card">
+          ${headerHtml}
+          <div class="autopluto-comps-empty">
+            <span class="autopluto-comps-empty-icon">◎</span>
+            <span class="autopluto-comps-empty-text">Comparable vehicles found — no price data available in response.</span>
+          </div>
+        </div>`;
+    }
+
+    // SVG chart geometry
+    const VW = 460, VH = 156;
+    const ML = 56, MR = 24, MT = 16, MB = 28;
+    const pw = VW - ML - MR;
+    const ph = VH - MT - MB;
+
+    const mileages  = comps.map((c) => c.mileage ?? c.km ?? c.odometer ?? c.miles ?? null);
+    const hasMileage = mileages.some((m) => m != null && m > 0);
+
+    const xVals = comps.map((c, i) => {
+      if (hasMileage) return c.mileage ?? c.km ?? c.odometer ?? c.miles ?? i;
+      return i;
+    });
+
+    const validX = xVals.filter((v) => v != null);
+    const xMin   = hasMileage ? Math.min(...validX) : 0;
+    const xMax   = hasMileage ? Math.max(...validX) : Math.max(comps.length - 1, 1);
+
+    const allPY  = [...validPrices];
+    if (emp != null) allPY.push(emp);
+    const rawYMin = Math.min(...allPY);
+    const rawYMax = Math.max(...allPY);
+    const yPad    = (rawYMax - rawYMin) * 0.12 || rawYMax * 0.08;
+    const yMin    = Math.max(0, rawYMin - yPad);
+    const yMax    = rawYMax + yPad;
+
+    const toX = (v) => {
+      if (v == null) return null;
+      const r = xMax - xMin;
+      return ML + (r === 0 ? pw / 2 : ((v - xMin) / r) * pw);
+    };
+    const toY = (v) => {
+      if (v == null) return null;
+      const r = yMax - yMin;
+      return MT + ph - (r === 0 ? ph / 2 : ((v - yMin) / r) * ph);
+    };
+
+    const parts = [];
+
+    // Horizontal grid + y-axis price labels
+    for (let i = 0; i <= 4; i++) {
+      const y     = MT + (ph / 4) * i;
+      const price = yMax - (yMax - yMin) * (i / 4);
+      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#1a2d48" stroke-width="1"/>`);
+      parts.push(`<text x="${(ML - 5).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#374151" font-size="9" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
+    }
+
+    // EMP reference dashed line
+    if (emp != null) {
+      const ey = toY(emp);
+      if (ey != null) {
+        parts.push(`<line x1="${ML}" y1="${ey.toFixed(1)}" x2="${VW - MR}" y2="${ey.toFixed(1)}" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>`);
+        parts.push(`<text x="${(VW - MR + 3).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#60a5fa" font-size="8" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
+      }
+    }
+
+    // Axes
+    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#1e3a5f" stroke-width="1"/>`);
+    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#1e3a5f" stroke-width="1"/>`);
+
+    // X-axis label
+    const xLabel = hasMileage ? 'Mileage' : 'Comparable';
+    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 4).toFixed(1)}" fill="#374151" font-size="8" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
+
+    // Data points
+    comps.forEach((c, i) => {
+      const price = prices[i];
+      const xVal  = xVals[i];
+      if (price == null) return;
+      const cx = toX(xVal);
+      const cy = toY(price);
+      if (cx == null || cy == null) return;
+
+      const year    = c.year      || '';
+      const make    = (c.make     || '').toUpperCase();
+      const model   = c.model     || '';
+      const trim    = c.trim      || '';
+      const mileVal = c.mileage ?? c.km ?? c.odometer ?? null;
+      const city    = c.city || c.location || c.auction_location || c.seller || '';
+      const score   = c.similarity_score ?? c.score ?? null;
+
+      const titleStr = [year, make, model, trim].filter(Boolean).join(' ') || `Comparable ${i + 1}`;
+      const mileStr  = mileVal != null ? fmtNum(mileVal) : '';
+      const scoreStr = score != null ? (typeof score.toFixed === 'function' ? score.toFixed(2) : String(score)) : '';
+
+      parts.push(`<circle class="autopluto-comp-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5.5" data-title="${esc(titleStr)}" data-price="${esc(fmt(price))}" data-mileage="${esc(mileStr)}" data-city="${esc(city)}" data-score="${esc(scoreStr)}"/>`);
+    });
+
+    return `
+      <div class="autopluto-comps-card">
+        ${headerHtml}
+        <div class="autopluto-comps-chart-wrap">
+          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg">${parts.join('')}</svg>
+          <div class="autopluto-comp-tooltip"></div>
         </div>
-        <div class="autopluto-conf-meter-track">
-          <div class="autopluto-conf-meter-fill autopluto-conf-meter-fill--${confColor}" style="width:${confPct}%"></div>
-        </div>
-      </div>` : '';
-
-    const indHtml = indicators.length > 0 ? `
-      <div class="autopluto-conf-indicators">
-        ${indicators.map((i) => `
-          <div class="autopluto-conf-ind autopluto-conf-ind--${i.color}">
-            <span class="autopluto-conf-ind-lbl">${esc(i.label)}</span>
-            <span class="autopluto-conf-ind-val">${esc(i.value)}</span>
-          </div>`).join('')}
-      </div>` : '';
-
-    return `<div class="autopluto-confidence-card">${confMainHtml}${indHtml}</div>`;
+      </div>`;
   }
 
+  /** Attach hover tooltips to comparable chart dots — call after innerHTML is set */
+  function attachComparableTooltips(card) {
+    const svg  = card.querySelector('.autopluto-comps-svg');
+    const tip  = card.querySelector('.autopluto-comp-tooltip');
+    const wrap = card.querySelector('.autopluto-comps-chart-wrap');
+    if (!svg || !tip || !wrap) return;
+
+    svg.querySelectorAll('.autopluto-comp-dot').forEach((dot) => {
+      dot.addEventListener('mouseenter', () => {
+        const title   = dot.getAttribute('data-title')   || 'Comparable';
+        const price   = dot.getAttribute('data-price')   || 'N/A';
+        const mileage = dot.getAttribute('data-mileage') || '';
+        const city    = dot.getAttribute('data-city')    || '';
+        const score   = dot.getAttribute('data-score')   || '';
+
+        let rows = `<div class="autopluto-comp-tt-title">${esc(title)}</div>`;
+        rows += `<div class="autopluto-comp-tt-row"><span>Price</span><strong>${esc(price)}</strong></div>`;
+        if (mileage) rows += `<div class="autopluto-comp-tt-row"><span>Mileage</span><strong>${esc(mileage)}</strong></div>`;
+        if (city)    rows += `<div class="autopluto-comp-tt-row"><span>Location</span><strong>${esc(city)}</strong></div>`;
+        if (score)   rows += `<div class="autopluto-comp-tt-row"><span>Score</span><strong>${esc(score)}</strong></div>`;
+
+        tip.innerHTML = rows;
+
+        const wrapRect = wrap.getBoundingClientRect();
+        const svgRect  = svg.getBoundingClientRect();
+        const cx = parseFloat(dot.getAttribute('cx'));
+        const cy = parseFloat(dot.getAttribute('cy'));
+        const scaleX = svgRect.width  / 460;
+        const scaleY = svgRect.height / 156;
+        const dotLeft = svgRect.left - wrapRect.left + cx * scaleX;
+        const dotTop  = svgRect.top  - wrapRect.top  + cy * scaleY;
+        const tipW = 172;
+        let left = dotLeft + 14;
+        let top  = dotTop  - 10;
+        if (left + tipW > wrapRect.width - 4) left = dotLeft - tipW - 8;
+        if (left < 4) left = 4;
+        if (top < 4)  top  = dotTop + 16;
+        tip.style.cssText = `display:block !important;left:${left}px;top:${top}px;`;
+      });
+
+      dot.addEventListener('mouseleave', () => {
+        tip.style.cssText = 'display:none !important;';
+      });
+    });
+  }
+
+  // ── F. Supporting Risk & Quality Signals ─────────────────────
+  function buildSupportingSignals(result, compQuality) {
+    const safety   = result.bid_safety_level;
+    const comps    = result.comparable_count;
+    const fallback = result.market_fallback_level;
+
+    const chips = [];
+    if (safety)        chips.push({ label: 'Safety',   value: safety.replace(/_/g, ' '),     color: getSafetyColor(safety) });
+    if (comps != null) chips.push({ label: 'Comps',    value: String(comps),                  color: comps > 0 ? 'blue' : 'gray' });
+    if (compQuality) {
+      const qc     = compQuality.toLowerCase();
+      const qColor = (qc === 'good' || qc === 'high') ? 'green' : (qc === 'unreliable' || qc === 'low') ? 'red' : 'yellow';
+      chips.push({ label: 'Quality',  value: compQuality.replace(/_/g, ' '),   color: qColor });
+    }
+    if (fallback)      chips.push({ label: 'Fallback', value: fallback.replace(/_/g, ' '),   color: getFallbackColor(fallback) });
+
+    if (chips.length === 0) return '';
+    return `<div class="autopluto-signals-row">
+      ${chips.map((ch) => `
+        <div class="autopluto-signal-chip autopluto-signal-chip--${esc(ch.color)}">
+          <span class="autopluto-signal-lbl">${esc(ch.label)}</span>
+          <span class="autopluto-signal-val">${esc(ch.value)}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── G. Manual Review Warning ─────────────────────────────────
   function buildWarningCard(manualReview) {
     if (!manualReview) return '';
     return `
@@ -994,6 +1209,7 @@
       </div>`;
   }
 
+  // ── H. Footer Actions ────────────────────────────────────────
   function buildFooterActions() {
     return `
       <div class="autopluto-card-footer">
@@ -1066,17 +1282,23 @@
     const manualReview    = raw.manual_review_required   ?? false;
     const compQuality     = raw.comparable_quality       ?? null;
 
+    // ── Confidence data for EMP hero ─────────────────────────────
+    const confidence = result.confidence_level;
+    const confColor  = getConfidenceColor(confidence);
+    const confPct    = getConfidencePercent(confidence);
+
     const card = document.createElement('div');
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
 
-    // ── Section builders ─────────────────────────────────────────
-    const headerHtml     = buildHeaderSection(vehicleData, result);
-    const priceCardsHtml = buildPrimaryPriceCards(emp, rmb, currentPrice, hasCurrentPrice);
-    const insightHtml    = buildDecisionInsight(margin, hasCurrentPrice && rmb != null);
-    const rangeHtml      = buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice);
-    const confHtml       = buildConfidenceSection(result, compQuality);
-    const warningBoxHtml = buildWarningCard(manualReview);
+    // ── Section builders (new v8 layout) ─────────────────────────
+    const headerHtml   = buildHeaderSection(vehicleData, result);
+    const primaryHtml  = buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct);
+    const insightHtml  = buildDecisionInsight(margin, hasCurrentPrice && rmb != null);
+    const rangeHtml    = buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice);
+    const compsHtml    = buildComparablesChart(raw, emp);
+    const signalsHtml  = buildSupportingSignals(result, compQuality);
+    const warningHtml  = buildWarningCard(manualReview);
 
     // ── General inline warnings ──────────────────────────────────
     let inlineWarnings = '';
@@ -1129,20 +1351,22 @@
 
     // ── Collapsible: Debug Details ───────────────────────────────
     const debugPayload = JSON.stringify({ vehicle: vehicleData, result: result._raw }, null, 2);
-    const debugHtml = buildCollapsibleBlock(
+    const debugHtml    = buildCollapsibleBlock(
       'Debug Details',
       `<pre class="autopluto-debug-pre">${esc(debugPayload)}</pre>`,
       'muted'
     );
 
+    // ── Assemble card HTML (v8 layout) ───────────────────────────
     card.innerHTML = `
       ${headerHtml}
       <div class="autopluto-card-body">
-        ${priceCardsHtml}
+        ${primaryHtml}
         ${insightHtml}
         ${rangeHtml}
-        ${confHtml}
-        ${warningBoxHtml}
+        ${compsHtml}
+        ${signalsHtml}
+        ${warningHtml}
         ${inlineWarnings}
         <div class="autopluto-collapsibles">
           ${reportNotesHtml}
@@ -1165,6 +1389,9 @@
     card.querySelectorAll('details.autopluto-details').forEach((det) => {
       det.addEventListener('toggle', () => positionPopover(card, rowEl));
     });
+
+    // ── Comparable chart tooltips ────────────────────────────────
+    attachComparableTooltips(card);
 
     // ── Copy result ───────────────────────────────────────────────
     card.querySelector('.autopluto-copy-result-btn').addEventListener('click', (e) => {
