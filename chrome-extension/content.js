@@ -44,16 +44,50 @@
 
   function getTableValue(container, labelText) {
     if (!container) return null;
-    const labels = container.querySelectorAll('td label');
-    for (const lbl of labels) {
-      if (lbl.textContent.trim().toLowerCase() === labelText.toLowerCase()) {
-        const td = lbl.closest('td');
-        if (td && td.nextElementSibling) {
-          return td.nextElementSibling.textContent.trim() || null;
+    const lower = labelText.toLowerCase();
+
+    // Strategy 1: <label> inside a <td>/<th>
+    for (const lbl of container.querySelectorAll('td label, th label')) {
+      if (lbl.textContent.trim().toLowerCase() === lower) {
+        const cell = lbl.closest('td, th');
+        if (cell && cell.nextElementSibling) {
+          return cell.nextElementSibling.textContent.trim() || null;
         }
       }
     }
+
+    // Strategy 2: plain <td>/<th> whose full text matches the label
+    for (const cell of container.querySelectorAll('td, th')) {
+      if (cell.textContent.trim().toLowerCase() === lower && cell.nextElementSibling) {
+        return cell.nextElementSibling.textContent.trim() || null;
+      }
+    }
+
+    // Strategy 3: any leaf element matching the label (div/flex/span layouts)
+    for (const el of container.querySelectorAll('span, div, dt, label')) {
+      if (el.querySelector('span, div, dt, label')) continue; // skip non-leaf
+      if (el.textContent.trim().toLowerCase() !== lower) continue;
+      const next = el.nextElementSibling;
+      if (next) { const v = next.textContent.trim(); if (v) return v; }
+      const pNext = el.parentElement && el.parentElement.nextElementSibling;
+      if (pNext) { const v = pNext.textContent.trim(); if (v) return v; }
+    }
+
     return null;
+  }
+
+  /** Watches `root` for a matching element; resolves null on timeout. */
+  function waitForElement(root, selector, timeoutMs) {
+    return new Promise((resolve) => {
+      const existing = root.querySelector(selector);
+      if (existing) return resolve(existing);
+      const timer = setTimeout(() => { observer.disconnect(); resolve(null); }, timeoutMs);
+      const observer = new MutationObserver(() => {
+        const el = root.querySelector(selector);
+        if (el) { clearTimeout(timer); observer.disconnect(); resolve(el); }
+      });
+      observer.observe(root, { childList: true, subtree: true });
+    });
   }
 
   function parseTitle(rawTitle) {
@@ -204,35 +238,566 @@
     const minValEl = panel.querySelector('.vc-rep-minval');
     const minPrice = minValEl ? parsePrice(minValEl.textContent) : null;
 
-    const detailsTable = panel.querySelector('.vc-item-det table');
+    // Try progressively broader selectors for the details container
+    const detailsTable =
+      panel.querySelector('.vc-item-det table') ||
+      panel.querySelector('.vc-item-det')       ||
+      panel.querySelector('[class*="item-det"]') ||
+      panel.querySelector('[class*="item-details"]') ||
+      null;
 
-    const engine       = getTableValue(detailsTable, 'Engine')           || getTableValue(detailsTable, 'engine');
-    const fuelType     = getTableValue(detailsTable, 'Fuel')             || getTableValue(detailsTable, 'fuel');
-    const driveType    = getTableValue(detailsTable, 'Drive Type')       || getTableValue(detailsTable, 'drive type');
-    const transmission = getTableValue(detailsTable, 'Transmission')     || getTableValue(detailsTable, 'transmission');
-    const doorRaw      = getTableValue(detailsTable, 'Door')             || getTableValue(detailsTable, 'door');
+    // Use detailsTable when available, otherwise fall back to entire panel
+    const detSrc = detailsTable || panel;
+
+    const engine       = getTableValue(detSrc, 'Engine')           || getTableValue(detSrc, 'engine');
+    const fuelType     = getTableValue(detSrc, 'Fuel')             || getTableValue(detSrc, 'fuel');
+    const driveType    = getTableValue(detSrc, 'Drive Type')       || getTableValue(detSrc, 'drive type');
+    const transmission = getTableValue(detSrc, 'Transmission')     || getTableValue(detSrc, 'transmission');
+    const doorRaw      = getTableValue(detSrc, 'Door')             || getTableValue(detSrc, 'door');
     const doors        = doorRaw ? parseInt(doorRaw, 10) || null : null;
-    const colorDetail  = getTableValue(detailsTable, 'Color')            || getTableValue(detailsTable, 'color');
-    const sellerDetail = getTableValue(detailsTable, 'Seller')           || getTableValue(detailsTable, 'seller');
-    const trimDetail   = getTableValue(detailsTable, 'Trim')             || getTableValue(detailsTable, 'trim');
-    const vehicleLocation = getTableValue(detailsTable, 'Vehicle Location') || getTableValue(detailsTable, 'vehicle location');
-    const vinDetail    = getTableValue(detailsTable, 'VIN');
+    const colorDetail  = getTableValue(detSrc, 'Color')            || getTableValue(detSrc, 'color');
+    const interiorDetail = getTableValue(detSrc, 'Interior')       || getTableValue(detSrc, 'interior');
+    const bodyStyle    = getTableValue(detSrc, 'Body Style')       || getTableValue(detSrc, 'body style');
+    const sellerDetail = getTableValue(detSrc, 'Seller')           || getTableValue(detSrc, 'seller');
+    const trimDetail   = getTableValue(detSrc, 'Trim')             || getTableValue(detSrc, 'trim');
+    const vehicleLocation = getTableValue(detSrc, 'Vehicle Location') || getTableValue(detSrc, 'vehicle location');
+    const vinDetail    = getTableValue(detSrc, 'VIN')              || getTableValue(detSrc, 'vin');
 
     return {
       currentAuctionPrice,
       lights,
       minPrice,
-      engine:               engine       || null,
-      fuelType:             fuelType     || null,
-      drivetrain:           driveType    || null,
-      transmission:         transmission || null,
+      engine:               engine         || null,
+      fuelType:             fuelType       || null,
+      drivetrain:           driveType      || null,
+      transmission:         transmission   || null,
       doors,
-      exteriorColorDetail:  colorDetail  || null,
-      sellerName:           sellerDetail || null,
-      trimDetail:           trimDetail   || null,
+      exteriorColorDetail:  colorDetail    || null,
+      interiorColor:        interiorDetail || null,
+      bodyStyle:            bodyStyle      || null,
+      sellerName:           sellerDetail   || null,
+      trimDetail:           trimDetail     || null,
       vehicleLocation:      vehicleLocation || null,
-      vinDetail:            vinDetail    || null,
+      vinDetail:            vinDetail      || null,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // POPUP DATA EXTRACTION  v2
+  // Two-stage flow: open popup → VIN-verify → extract all fields → close.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Global guard: only one popup operation at a time (critical for batch mode)
+  let _popupOperationActive = false;
+
+  /** Returns true when an element is in the DOM and visually present. */
+  function isElementVisible(el) {
+    if (!el || !document.contains(el)) return false;
+    // Velocicast uses "out" class for inactive slide panes
+    if (el.classList && el.classList.contains('out')) return false;
+    const st = window.getComputedStyle(el);
+    if (st.display === 'none') return false;
+    if (st.visibility === 'hidden') return false;
+    if (parseFloat(st.opacity) === 0) return false;
+    if (el.getClientRects().length === 0) return false;
+    // position:fixed elements have offsetParent===null but are still visible
+    if (st.position !== 'fixed' && el.offsetParent === null) return false;
+    return true;
+  }
+
+  /**
+   * Multi-variant label→value lookup.
+   * Tries each label string in order and returns the first non-null hit.
+   */
+  function getTableLabelValue(container, labelVariants) {
+    const list = Array.isArray(labelVariants) ? labelVariants : [labelVariants];
+    for (const v of list) {
+      const result = getTableValue(container, v);
+      if (result) return result;
+    }
+    return null;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // POPUP DETECTION  –  module-scope helpers used by extractWithPopup
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const POPUP_SEL = '.vc-item-popup.item-detail-popup, .item-detail-popup, .vc-item-popup';
+
+  /** Search the whole document for a currently visible vehicle detail popup. */
+  function findVisiblePopup() {
+    for (const p of document.querySelectorAll(POPUP_SEL)) {
+      if (isElementVisible(p)) return p;
+    }
+    return null;
+  }
+
+  /**
+   * Normalize a label string for stable comparison:
+   * lowercase, trim, strip trailing punctuation, collapse whitespace.
+   */
+  function normalizeLabel(text) {
+    return (text || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[.:*]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Find the best visible + populated details container inside the popup.
+   * Prefers slide panes with class "in" (active); avoids "out" panes.
+   */
+  function findVisibleDetailsContainer(popupEl) {
+    // Prefer explicitly "in" (active) slide panes
+    const activeSelectors = [
+      '.slidePane-item.in .item-detail-inner',
+      '.vc-slide-cont.in .item-detail-inner',
+      '.item-tabbed.in .item-detail-inner',
+      '.tab-pane.active .item-detail-inner',
+      '.in > .item-detail-inner',
+    ];
+    for (const sel of activeSelectors) {
+      const el = popupEl.querySelector(sel);
+      if (el && isElementVisible(el) && el.querySelectorAll('tr, td, th').length > 0) return el;
+    }
+
+    // Fall back: all .item-detail-inner — pick the one with most content
+    let best = null;
+    let bestScore = -1;
+    for (const inner of popupEl.querySelectorAll('.item-detail-inner')) {
+      if (inner.classList.contains('out')) continue;
+      const score = inner.querySelectorAll('tr, td, th, label').length;
+      if (score > bestScore) { bestScore = score; best = inner; }
+    }
+    if (best && bestScore > 0) return best;
+
+    // Last resort
+    return (
+      popupEl.querySelector('.vc-pop-inner') ||
+      popupEl.querySelector('.vc-item-inner') ||
+      popupEl
+    );
+  }
+
+  /**
+   * Parse ALL visible label→value pairs from the popup's details section.
+   * Returns a plain object keyed by normalizeLabel(label).
+   * Three strategies handle table-row, flex/div-row, and leaf-sibling layouts.
+   */
+  function parseVisiblePopupFields(popupEl) {
+    const fieldMap = {};
+    const container = findVisibleDetailsContainer(popupEl);
+
+    const record = (rawLabel, rawValue) => {
+      const key = normalizeLabel(rawLabel);
+      const val = (rawValue || '').trim();
+      // Reject empty values and cells whose label === value (header-only rows)
+      if (key && val && normalizeLabel(rawLabel) !== normalizeLabel(rawValue) && !fieldMap[key]) {
+        fieldMap[key] = val;
+      }
+    };
+
+    // ── Strategy 1: <table> rows (most common in Velocicast) ─────────────────
+    for (const table of container.querySelectorAll('table')) {
+      for (const tr of table.querySelectorAll('tr')) {
+        const cells = tr.querySelectorAll('td, th');
+        if (cells.length < 2) continue;
+        const labelCell = cells[0];
+        const valueCell = cells[cells.length - 1]; // last cell = value
+        if (labelCell === valueCell) continue;
+
+        // Label may be wrapped in <label>
+        const labelEl = labelCell.querySelector('label');
+        const rawLabel = ((labelEl || labelCell).textContent || '').trim();
+        const rawValue = (valueCell.textContent || '').trim();
+        if (rawLabel && rawValue) record(rawLabel, rawValue);
+      }
+    }
+
+    // ── Strategy 2: flex/div label-value rows (non-table layouts) ────────────
+    for (const row of container.querySelectorAll(
+      '.detail-row, .spec-row, [class*="detail-row"], [class*="spec-row"], [class*="item-row"]'
+    )) {
+      const kids = Array.from(row.children).filter((k) => k.textContent.trim());
+      if (kids.length < 2) continue;
+      const rawLabel = (kids[0].textContent || '').trim();
+      const rawValue = (kids[kids.length - 1].textContent || '').trim();
+      if (rawLabel && rawValue) record(rawLabel, rawValue);
+    }
+
+    // ── Strategy 3: leaf-element sibling pairs (div/span/dt layouts) ─────────
+    for (const el of container.querySelectorAll('span, div, dt, label')) {
+      if (el.querySelector('span, div, dt, label')) continue; // skip non-leaf
+      const rawLabel = (el.textContent || '').trim();
+      if (!rawLabel || rawLabel.length > 50) continue;
+
+      const tryValue = (candidate) => {
+        if (!candidate) return false;
+        const rawValue = (candidate.textContent || '').trim();
+        if (rawValue && rawValue !== rawLabel) { record(rawLabel, rawValue); return true; }
+        return false;
+      };
+
+      if (!tryValue(el.nextElementSibling)) {
+        tryValue(el.parentElement && el.parentElement.nextElementSibling);
+      }
+    }
+
+    return fieldMap;
+  }
+
+  /**
+   * Map a parsed fieldMap (normalized keys) to standard vehicle data fields.
+   * Also extracts equipment and high-value options from popup sections.
+   */
+  function mapPopupFieldsToData(fieldMap, popupEl) {
+    const get = (...labels) => {
+      for (const lbl of labels) {
+        const val = fieldMap[normalizeLabel(lbl)];
+        if (val) return val;
+      }
+      return null;
+    };
+
+    const doorRaw = get('door', 'doors');
+
+    // ── Equipment list ────────────────────────────────────────────────────────
+    const equipment = [];
+    const equipSection = popupEl.querySelector('.item-equipment, [class*="equipment"]');
+    if (equipSection) {
+      equipSection.querySelectorAll('li, [class*="item"]').forEach((el) => {
+        const t = el.textContent.trim();
+        if (t) equipment.push(t);
+      });
+    }
+    if (!equipment.length) {
+      for (const hdr of popupEl.querySelectorAll('h3, h4, h5, .section-title, th')) {
+        if (/^equipment$/i.test(hdr.textContent.trim())) {
+          const cont = hdr.closest('tr') ? hdr.closest('table') : hdr.nextElementSibling;
+          if (cont) {
+            cont.querySelectorAll('li, td, span').forEach((el) => {
+              const t = el.textContent.trim();
+              if (t && t.toLowerCase() !== 'equipment') equipment.push(t);
+            });
+          }
+          break;
+        }
+      }
+    }
+
+    // ── High Value Options list ───────────────────────────────────────────────
+    const highValueOptions = [];
+    const hvoSection = popupEl.querySelector('.item-hvo, [class*="high-value"], [class*="hvo-"]');
+    if (hvoSection) {
+      hvoSection.querySelectorAll('li, [class*="option"]').forEach((el) => {
+        const t = el.textContent.trim();
+        if (t) highValueOptions.push(t);
+      });
+    }
+    if (!highValueOptions.length) {
+      for (const hdr of popupEl.querySelectorAll('h3, h4, h5, .section-title, th')) {
+        if (/high.value.options/i.test(hdr.textContent)) {
+          const cont = hdr.closest('tr') ? hdr.closest('table') : hdr.nextElementSibling;
+          if (cont) {
+            cont.querySelectorAll('li, td, span').forEach((el) => {
+              const t = el.textContent.trim();
+              if (t && !/high.value.options/i.test(t)) highValueOptions.push(t);
+            });
+          }
+          break;
+        }
+      }
+    }
+
+    return {
+      vin:                get('vin'),
+      trimDetail:         get('trim'),
+      sellerName:         get('seller'),
+      engine:             get('engine'),
+      fuelType:           get('fuel', 'fuel type'),
+      drivetrain:         get('drive type', 'drivetrain', 'drive'),
+      transmission:       get('transmission', 'trans', 'trans.'),
+      doors:              doorRaw ? (parseInt(doorRaw, 10) || null) : null,
+      exteriorColor:      get('color', 'colour', 'exterior color', 'exterior colour'),
+      interiorColor:      get('interior', 'interior color'),
+      bodyStyle:          get('body style', 'style'),
+      vehicleLocation:    get('vehicle location'),
+      processingLocation: get('processing location'),
+      frontLineReady:     get('front line ready'),
+      titlePresent:       get('title present'),
+      equipment,
+      highValueOptions,
+    };
+  }
+
+  /**
+   * Click the Details tab inside the popup if it is not already active.
+   * Returns true when a tab was actually clicked.
+   */
+  function clickDetailsTab(popup) {
+    const candidates = [
+      popup.querySelector('a[data-toggle="details"]'),
+      popup.querySelector('[data-toggle="details"]'),
+      popup.querySelector('.vc-tabs a:first-child'),
+      popup.querySelector('.item-tabs a:first-child'),
+      popup.querySelector('.nav-tabs a:first-child'),
+    ].filter(Boolean);
+
+    for (const el of candidates) {
+      if (!el.classList.contains('active')) {
+        el.click();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Click the popup's close button; fall back to Escape key. */
+  function closePopupEl(popup) {
+    if (!popup) return;
+    const btn = popup.querySelector(
+      '.vc-pop-close, [class*="pop-close"], button.close, ' +
+      '[aria-label="close"], [aria-label="Close"], [title="Close"]'
+    );
+    if (btn) {
+      btn.click();
+    } else {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
+    }
+  }
+
+  /**
+   * Extract every spec field from the open vehicle detail popup.
+   * Delegates to parseVisiblePopupFields + mapPopupFieldsToData for robust extraction.
+   */
+  function extractFromPopup(popupEl) {
+    const fieldMap = parseVisiblePopupFields(popupEl);
+    return mapPopupFieldsToData(fieldMap, popupEl);
+  }
+
+  /**
+   * Merge popup fields over base (row+panel) data.  Popup wins when present.
+   * Optional fieldMap (raw parsed labels) is stored in metadata.popupFieldMap.
+   */
+  function mergeWithPopup(base, popup, fieldMap) {
+    if (!popup) return base;
+    return {
+      ...base,
+      vin:           popup.vin            || base.vin,
+      trim:          popup.trimDetail     || base.trim,
+      engine:        popup.engine         || base.engine,
+      fuelType:      popup.fuelType       || base.fuelType,
+      drivetrain:    popup.drivetrain     || base.drivetrain,
+      transmission:  popup.transmission   || base.transmission,
+      doors:         popup.doors          != null ? popup.doors : base.doors,
+      exteriorColor: popup.exteriorColor  || base.exteriorColor,
+      sellerName:    popup.sellerName     || base.sellerName,
+      metadata: {
+        ...base.metadata,
+        vehicleLocation:    popup.vehicleLocation    || base.metadata?.vehicleLocation    || null,
+        processingLocation: popup.processingLocation || base.metadata?.processingLocation || null,
+        interiorColor:      popup.interiorColor      || base.metadata?.interiorColor      || null,
+        bodyStyle:          popup.bodyStyle          || base.metadata?.bodyStyle          || null,
+        frontLineReady:     popup.frontLineReady     || base.metadata?.frontLineReady     || null,
+        titlePresent:       popup.titlePresent       || base.metadata?.titlePresent       || null,
+        highValueOptions:   popup.highValueOptions?.length
+                              ? popup.highValueOptions
+                              : (base.metadata?.highValueOptions || []),
+        equipment:          popup.equipment?.length
+                              ? popup.equipment
+                              : (base.metadata?.equipment || []),
+        popupFieldMap:      fieldMap || {},
+      },
+    };
+  }
+
+  /**
+   * Two-stage enrichment  v3:
+   * 1. Open vehicle detail popup (multiple click targets, document-wide search)
+   * 2. Wait for popup to appear and populate (retry loop, up to 5 s)
+   * 3. Click the Details tab if not already active
+   * 4. Verify popup belongs to this row (VIN > run-number > title)
+   * 5. Extract all spec fields via parseVisiblePopupFields + mapPopupFieldsToData
+   * 6. Close popup if we opened it
+   * 7. Merge popup fields over base data
+   *
+   * Returns { vehicleData, popupData, popupFieldMap, extractionStatus }
+   */
+  async function extractWithPopup(rowEl, baseData) {
+    const extractionStatus = {
+      opened:            false,
+      visiblePopupFound: false,
+      detailsTabClicked: false,
+      vinMatched:        false,
+      runNumberMatched:  false,
+      sourceUsed:        'row',
+      warnings:          [],
+    };
+
+    if (_popupOperationActive) {
+      extractionStatus.warnings.push('Popup operation already in progress — using row+panel data only.');
+      return { vehicleData: baseData, popupData: null, popupFieldMap: {}, extractionStatus };
+    }
+    _popupOperationActive = true;
+
+    try {
+      // ── 1. Check for already-visible popup (document-wide) ────────────────
+      let popup = findVisiblePopup();
+      const popupWasAlreadyOpen = !!popup;
+
+      if (!popupWasAlreadyOpen) {
+        // Try multiple click targets in order of specificity
+        const clickTargets = [
+          rowEl.querySelector('a.vc-details'),
+          rowEl.querySelector('.vc-details'),
+          rowEl.querySelector('[data-cy-item-num]'),
+          rowEl.querySelector('.item-info-row'),
+          rowEl,
+        ].filter(Boolean);
+
+        for (const target of clickTargets) {
+          target.click();
+          await new Promise((r) => setTimeout(r, 200));
+          popup = findVisiblePopup();
+          if (popup) { extractionStatus.opened = true; break; }
+        }
+      }
+
+      // ── 2. Wait up to 5 s for popup to appear ────────────────────────────
+      if (!popup) {
+        const deadline = Date.now() + 5000;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 150));
+          popup = findVisiblePopup();
+          if (popup) { extractionStatus.opened = true; break; }
+        }
+      }
+
+      if (!popup) {
+        extractionStatus.warnings.push('Popup did not appear — using row+panel data only.');
+        return { vehicleData: baseData, popupData: null, popupFieldMap: {}, extractionStatus };
+      }
+
+      extractionStatus.visiblePopupFound = true;
+
+      // ── 3. Click details tab if not already active ────────────────────────
+      if (clickDetailsTab(popup)) {
+        extractionStatus.detailsTabClicked = true;
+        await new Promise((r) => setTimeout(r, 350));
+      }
+
+      // ── 4. Retry loop: wait for popup content + verify row match ──────────
+      const rowVin       = (baseData.vin || '').trim().toUpperCase();
+      const rowRunNumber = String(baseData.metadata?.runNumber || '');
+      const rowTitle     = (baseData.titleFull || '').toLowerCase().trim();
+
+      let fieldMap = {};
+      let verified  = false;
+      let lastVinSeen = '';
+      const contentDeadline = Date.now() + 5000;
+
+      while (Date.now() < contentDeadline) {
+        // Re-acquire popup in case the DOM element changed
+        if (!isElementVisible(popup)) {
+          const fresh = findVisiblePopup();
+          if (fresh) { popup = fresh; }
+          else { await new Promise((r) => setTimeout(r, 200)); continue; }
+        }
+
+        fieldMap = parseVisiblePopupFields(popup);
+        if (Object.keys(fieldMap).length === 0) {
+          await new Promise((r) => setTimeout(r, 200));
+          continue;
+        }
+
+        // ── VIN check (most reliable) ────────────────────────────────────
+        const popupVin = (fieldMap[normalizeLabel('VIN')] || '').trim().toUpperCase();
+        lastVinSeen = popupVin;
+
+        if (rowVin && popupVin) {
+          if (popupVin === rowVin) {
+            extractionStatus.vinMatched = true;
+            verified = true;
+            break;
+          }
+          // VIN mismatch — popup may be stale from previous vehicle; keep waiting
+          await new Promise((r) => setTimeout(r, 300));
+          continue;
+        }
+
+        // ── Run-number check ─────────────────────────────────────────────
+        if (rowRunNumber) {
+          const popupText = popup.textContent || '';
+          const runMatch  = popupText.match(/#(\d+)/);
+          if (runMatch && runMatch[1] === rowRunNumber) {
+            extractionStatus.runNumberMatched = true;
+            verified = true;
+            break;
+          }
+        }
+
+        // ── Title year overlap check ──────────────────────────────────────
+        if (rowTitle) {
+          const yearM = rowTitle.match(/\d{4}/);
+          if (yearM) {
+            const titleEl = popup.querySelector(
+              '.item-title, .vc-item-title, h3, h4, h5, [class*="item-title"]'
+            );
+            if (titleEl && titleEl.textContent.includes(yearM[0])) {
+              verified = true;
+              break;
+            }
+          }
+        }
+
+        // Cannot verify ownership — proceed with a warning
+        extractionStatus.warnings.push('Cannot verify popup belongs to this row — proceeding with available data.');
+        verified = true;
+        break;
+      }
+
+      if (!verified) {
+        const msg = (rowVin && lastVinSeen && lastVinSeen !== rowVin)
+          ? `Popup VIN mismatch (expected ${rowVin}, got ${lastVinSeen}) — timed out, skipping enrichment.`
+          : 'Popup content did not load in time — using row+panel data only.';
+        extractionStatus.warnings.push(msg);
+        console.warn('[AutoPluто]', msg);
+        if (extractionStatus.opened && !popupWasAlreadyOpen) closePopupEl(popup);
+        return { vehicleData: baseData, popupData: null, popupFieldMap: fieldMap, extractionStatus };
+      }
+
+      if (Object.keys(fieldMap).length === 0) {
+        extractionStatus.warnings.push('Popup was visible but contained no parseable fields.');
+        if (extractionStatus.opened && !popupWasAlreadyOpen) closePopupEl(popup);
+        return { vehicleData: baseData, popupData: null, popupFieldMap: {}, extractionStatus };
+      }
+
+      // ── 5. Map fields to vehicle data ─────────────────────────────────────
+      const popupData = mapPopupFieldsToData(fieldMap, popup);
+      extractionStatus.sourceUsed = 'popup';
+
+      // ── 6. Close popup if we triggered it ────────────────────────────────
+      if (extractionStatus.opened && !popupWasAlreadyOpen) {
+        closePopupEl(popup);
+        await new Promise((r) => setTimeout(r, 150));
+      }
+
+      // ── 7. Merge popup over base data, store fieldMap in metadata ─────────
+      const vehicleData = mergeWithPopup(baseData, popupData, fieldMap);
+
+      // Derive cityAuction from vehicleLocation if still missing
+      if (!vehicleData.cityAuction && popupData.vehicleLocation) {
+        vehicleData.cityAuction = popupData.vehicleLocation
+          .replace(/^OPENLANE\s*/i, '').trim();
+      }
+
+      return { vehicleData, popupData, popupFieldMap: fieldMap, extractionStatus };
+
+    } finally {
+      _popupOperationActive = false;
+    }
   }
 
   function extractVehicleData(rowEl) {
@@ -591,10 +1156,11 @@
   }
 
   function positionPopover(popover, rowEl) {
-    const POPOVER_W = 500;
-    const rect      = rowEl.getBoundingClientRect();
+    const POPOVER_W  = 500;
+    const TAB_W      = 26; // handle width — must stay fully visible
+    const rect       = rowEl.getBoundingClientRect();
 
-    let left = rect.right + 12;
+    let left = rect.right + TAB_W + 10; // clear the blue $ handle entirely
     if (left + POPOVER_W > window.innerWidth - 16) {
       left = window.innerWidth - POPOVER_W - 16;
     }
@@ -696,15 +1262,24 @@
   }
 
   function buildDataQuality(vehicleData) {
+    const meta = vehicleData.metadata || {};
     const fields = [
-      { label: 'VIN',      val: vehicleData.vin },
-      { label: 'Mileage',  val: vehicleData.mileage },
-      { label: 'City',     val: vehicleData.cityAuction },
-      { label: 'Seller',   val: vehicleData.sellerName },
-      { label: 'Trim',     val: vehicleData.trim },
-      { label: 'Drive',    val: vehicleData.drivetrain },
-      { label: 'Fuel',     val: vehicleData.fuelType },
-      { label: 'Engine',   val: vehicleData.engine },
+      { label: 'VIN',        val: vehicleData.vin },
+      { label: 'Mileage',    val: vehicleData.mileage },
+      { label: 'City',       val: vehicleData.cityAuction },
+      { label: 'Trim',       val: vehicleData.trim },
+      { label: 'Seller',     val: vehicleData.sellerName },
+      { label: 'Color',      val: vehicleData.exteriorColor },
+      { label: 'Drivetrain', val: vehicleData.drivetrain },
+      { label: 'Fuel',       val: vehicleData.fuelType },
+      { label: 'Engine',     val: vehicleData.engine },
+      { label: 'Trans.',     val: vehicleData.transmission },
+      { label: 'Doors',      val: vehicleData.doors },
+      { label: 'Interior',   val: meta.interiorColor },
+      { label: 'Location',   val: meta.vehicleLocation },
+      { label: 'Processing', val: meta.processingLocation },
+      { label: 'FrontLine',  val: meta.frontLineReady },
+      { label: 'Title',      val: meta.titlePresent },
     ];
 
     const fieldHtml = fields.map((f) => {
@@ -852,26 +1427,47 @@
   }
 
   // ── B. Primary Intelligence Section ─────────────────────────
-  // EMP is the HERO. Confidence is tightly coupled with it.
-  // RMB and Current Bid are visually secondary (right column).
-  function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct) {
-    const confHtml = confidence
-      ? `<div class="autopluto-emp-conf">
+  // EMP is the HERO. Confidence (with explicit label) tightly coupled.
+  // Quality appears below Confidence within the EMP hero card.
+  // RMB and Current Bid are secondary (right column).
+  function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality) {
+    // Confidence row with explicit "Confidence" label
+    const confRowHtml = confidence
+      ? `<div class="autopluto-emp-conf-row">
+           <span class="autopluto-emp-conf-key">Confidence</span>
            <div class="autopluto-emp-conf-meter">
              <div class="autopluto-emp-conf-fill autopluto-emp-conf-fill--${esc(confColor)}" style="width:${confPct}%"></div>
            </div>
            <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--${esc(confColor)}">${esc(confidence.replace(/_/g, ' '))}</span>
          </div>`
-      : `<div class="autopluto-emp-conf">
-           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--gray">Confidence N/A</span>
+      : `<div class="autopluto-emp-conf-row">
+           <span class="autopluto-emp-conf-key">Confidence</span>
+           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--gray">N/A</span>
          </div>`;
+
+    // Quality row — visually secondary, below Confidence
+    let qualityRowHtml = '';
+    if (compQuality) {
+      const qc     = compQuality.toLowerCase();
+      const qColor = (qc === 'good' || qc === 'high') ? 'green'
+        : (qc === 'unreliable' || qc === 'low')       ? 'red'
+        : 'yellow';
+      qualityRowHtml = `
+        <div class="autopluto-emp-quality-row">
+          <span class="autopluto-emp-conf-key autopluto-emp-conf-key--dim">Quality</span>
+          <span class="autopluto-emp-quality-badge autopluto-emp-quality-badge--${esc(qColor)}">${esc(compQuality.replace(/_/g, ' '))}</span>
+        </div>`;
+    }
 
     return `
       <div class="autopluto-primary-intel">
         <div class="autopluto-emp-hero">
           <div class="autopluto-emp-hero-label">Estimated Market Price</div>
           <div class="autopluto-emp-hero-value">${fmt(emp)}</div>
-          ${confHtml}
+          <div class="autopluto-emp-conf">
+            ${confRowHtml}
+            ${qualityRowHtml}
+          </div>
         </div>
         <div class="autopluto-right-stack">
           <div class="autopluto-rmb-mini">
@@ -888,7 +1484,7 @@
   }
 
   // ── C. Decision Insight Bar (compact secondary status) ───────
-  function buildDecisionInsight(margin, canCalculate) {
+  function buildDecisionInsight(margin, canCalculate, currentPrice, emp) {
     if (!canCalculate || margin === null) {
       return `<div class="autopluto-insight-bar autopluto-insight-bar--neutral">
         <span class="autopluto-insight-dot"></span>
@@ -916,72 +1512,56 @@
         </div>
       </div>`;
     }
-    return `<div class="autopluto-insight-bar autopluto-insight-bar--danger">
-      <span class="autopluto-insight-dot"></span>
-      <div class="autopluto-insight-content">
-        <span class="autopluto-insight-label">Above recommended max — consider walking away</span>
-        <span class="autopluto-insight-meta"><strong>${fmt(Math.abs(margin))}</strong> over limit</span>
-      </div>
-    </div>`;
+    return '';
   }
 
-  // ── D. Expected Market Range (premium range rail) ────────────
-  function buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice) {
+  // ── D. Expected Market Range ──────────────────────────────────
+  function buildRangeVisualization(rangeLow, rangeHigh, emp, currentPrice) {
     if (rangeLow == null && rangeHigh == null) return '';
 
-    const hasRange = rangeLow != null && rangeHigh != null && rangeHigh > rangeLow;
-    let barHtml    = '';
-    let legendHtml = '';
+    const spread = (rangeLow != null && rangeHigh != null) ? rangeHigh - rangeLow : null;
 
-    if (hasRange) {
-      const clampPct = (val) => val == null ? null
-        : Math.max(1.5, Math.min(98.5, ((val - rangeLow) / (rangeHigh - rangeLow)) * 100));
-
-      const markers = [];
-      if (emp          != null) markers.push({ pct: clampPct(emp),          cls: 'emp',     label: 'Market Price', value: fmt(emp) });
-      if (rmb          != null) markers.push({ pct: clampPct(rmb),          cls: 'rmb',     label: 'Max Bid',      value: fmt(rmb) });
-      if (currentPrice != null) markers.push({ pct: clampPct(currentPrice), cls: 'current', label: 'Current Bid',  value: fmt(currentPrice) });
-
-      const markersHtml = markers.map((m) =>
-        `<div class="autopluto-rm autopluto-rm--${m.cls}" style="left:${m.pct.toFixed(1)}%" title="${esc(m.label)}: ${esc(m.value)}"></div>`
-      ).join('');
-
-      barHtml = `
-        <div class="autopluto-range-viz">
-          <div class="autopluto-range-track">
-            <div class="autopluto-range-track-fill"></div>
-            ${markersHtml}
-          </div>
-          <div class="autopluto-range-bounds">
-            <span>${fmt(rangeLow)}</span>
-            <span>${fmt(rangeHigh)}</span>
-          </div>
-        </div>`;
-
-      if (markers.length > 0) {
-        legendHtml = `<div class="autopluto-range-legend">
-          ${markers.map((m) => `
-            <div class="autopluto-range-legend-item">
-              <span class="autopluto-range-legend-dot autopluto-range-legend-dot--${m.cls}"></span>
-              <div class="autopluto-range-legend-info">
-                <span class="autopluto-range-legend-lbl">${esc(m.label)}</span>
-                <span class="autopluto-range-legend-val">${esc(m.value)}</span>
-              </div>
-            </div>`).join('')}
-        </div>`;
-      }
-    } else {
-      barHtml = `<div class="autopluto-range-simple">
-        ${rangeLow  != null ? `<div class="autopluto-range-simple-item"><span class="autopluto-range-simple-lbl">Low</span><span class="autopluto-range-simple-val">${fmt(rangeLow)}</span></div>`  : ''}
-        ${rangeHigh != null ? `<div class="autopluto-range-simple-item"><span class="autopluto-range-simple-lbl">High</span><span class="autopluto-range-simple-val">${fmt(rangeHigh)}</span></div>` : ''}
-      </div>`;
+    // Calculate where EMP sits on the track (0–100%)
+    let empPct = null;
+    if (emp != null && rangeLow != null && rangeHigh != null && rangeHigh > rangeLow) {
+      empPct = Math.min(96, Math.max(4, ((emp - rangeLow) / (rangeHigh - rangeLow)) * 100));
     }
+
+    const empMarkerHtml = empPct != null
+      ? `<div class="autopluto-range-emp-marker" style="left:${empPct.toFixed(1)}%">
+           <div class="autopluto-range-emp-dot"></div>
+           <div class="autopluto-range-emp-label">EMP</div>
+         </div>`
+      : '';
+
+    const spreadPill = spread != null
+      ? `<span class="autopluto-range-spread-pill">${fmt(spread)} spread</span>`
+      : '';
 
     return `
       <div class="autopluto-range-card">
-        <div class="autopluto-range-card-title">Expected Market Range</div>
-        ${barHtml}
-        ${legendHtml}
+        <div class="autopluto-range-card-header">
+          <span class="autopluto-range-card-title">Expected Market Range</span>
+          ${spreadPill}
+        </div>
+        <div class="autopluto-range-endpoints">
+          <div class="autopluto-range-endpoint autopluto-range-endpoint--low">
+            <div class="autopluto-range-endpoint-lbl">Low</div>
+            <div class="autopluto-range-endpoint-val">${rangeLow != null ? fmt(rangeLow) : '—'}</div>
+          </div>
+          <div class="autopluto-range-endpoint autopluto-range-endpoint--high">
+            <div class="autopluto-range-endpoint-lbl">High</div>
+            <div class="autopluto-range-endpoint-val">${rangeHigh != null ? fmt(rangeHigh) : '—'}</div>
+          </div>
+        </div>
+        <div class="autopluto-range-track-wrap">
+          <div class="autopluto-range-track-v2">
+            <div class="autopluto-range-track-fill-v2"></div>
+            <div class="autopluto-range-track-low-cap"></div>
+            <div class="autopluto-range-track-high-cap"></div>
+            ${empMarkerHtml}
+          </div>
+        </div>
       </div>`;
   }
 
@@ -1026,9 +1606,9 @@
         </div>`;
     }
 
-    // SVG chart geometry
-    const VW = 460, VH = 156;
-    const ML = 56, MR = 24, MT = 16, MB = 28;
+    // SVG chart geometry — taller, wider margins for readability
+    const VW = 460, VH = 188;
+    const ML = 62, MR = 20, MT = 18, MB = 34;
     const pw = VW - ML - MR;
     const ph = VH - MT - MB;
 
@@ -1065,32 +1645,32 @@
 
     const parts = [];
 
-    // Horizontal grid + y-axis price labels
+    // Horizontal grid + y-axis price labels — brighter for readability
     for (let i = 0; i <= 4; i++) {
       const y     = MT + (ph / 4) * i;
       const price = yMax - (yMax - yMin) * (i / 4);
-      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#1a2d48" stroke-width="1"/>`);
-      parts.push(`<text x="${(ML - 5).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#374151" font-size="9" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
+      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#243a56" stroke-width="0.8"/>`);
+      parts.push(`<text x="${(ML - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#93a8c4" font-size="10" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
     }
 
-    // EMP reference dashed line
+    // EMP reference dashed line — more prominent
     if (emp != null) {
       const ey = toY(emp);
       if (ey != null) {
-        parts.push(`<line x1="${ML}" y1="${ey.toFixed(1)}" x2="${VW - MR}" y2="${ey.toFixed(1)}" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>`);
-        parts.push(`<text x="${(VW - MR + 3).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#60a5fa" font-size="8" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
+        parts.push(`<line x1="${ML}" y1="${ey.toFixed(1)}" x2="${VW - MR}" y2="${ey.toFixed(1)}" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3" opacity="0.95"/>`);
+        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#60a5fa" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
       }
     }
 
-    // Axes
-    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#1e3a5f" stroke-width="1"/>`);
-    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#1e3a5f" stroke-width="1"/>`);
+    // Axes — more visible
+    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#3d5a82" stroke-width="1.5"/>`);
+    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#3d5a82" stroke-width="1.5"/>`);
 
-    // X-axis label
-    const xLabel = hasMileage ? 'Mileage' : 'Comparable';
-    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 4).toFixed(1)}" fill="#374151" font-size="8" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
+    // X-axis label — brighter
+    const xLabel = hasMileage ? 'Mileage (KM)' : 'Comparable #';
+    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 5).toFixed(1)}" fill="#93a8c4" font-size="9.5" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
 
-    // Data points
+    // Data points — larger and brighter
     comps.forEach((c, i) => {
       const price = prices[i];
       const xVal  = xVals[i];
@@ -1111,14 +1691,14 @@
       const mileStr  = mileVal != null ? fmtNum(mileVal) : '';
       const scoreStr = score != null ? (typeof score.toFixed === 'function' ? score.toFixed(2) : String(score)) : '';
 
-      parts.push(`<circle class="autopluto-comp-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5.5" data-title="${esc(titleStr)}" data-price="${esc(fmt(price))}" data-mileage="${esc(mileStr)}" data-city="${esc(city)}" data-score="${esc(scoreStr)}"/>`);
+      parts.push(`<circle class="autopluto-comp-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7" data-title="${esc(titleStr)}" data-price="${esc(fmt(price))}" data-mileage="${esc(mileStr)}" data-city="${esc(city)}" data-score="${esc(scoreStr)}"/>`);
     });
 
     return `
       <div class="autopluto-comps-card">
         ${headerHtml}
         <div class="autopluto-comps-chart-wrap">
-          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg">${parts.join('')}</svg>
+          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${parts.join('')}</svg>
           <div class="autopluto-comp-tooltip"></div>
         </div>
       </div>`;
@@ -1152,7 +1732,7 @@
         const cx = parseFloat(dot.getAttribute('cx'));
         const cy = parseFloat(dot.getAttribute('cy'));
         const scaleX = svgRect.width  / 460;
-        const scaleY = svgRect.height / 156;
+        const scaleY = svgRect.height / 188;
         const dotLeft = svgRect.left - wrapRect.left + cx * scaleX;
         const dotTop  = svgRect.top  - wrapRect.top  + cy * scaleY;
         const tipW = 172;
@@ -1215,6 +1795,7 @@
       <div class="autopluto-card-footer">
         <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-refresh-btn">↻ Refresh</button>
         <button class="autopluto-footer-btn autopluto-footer-btn--ghost autopluto-copy-result-btn">⎘ Copy</button>
+        <button class="autopluto-footer-btn autopluto-footer-btn--close autopluto-close-footer-btn">✕ Close</button>
       </div>`;
   }
 
@@ -1293,9 +1874,9 @@
 
     // ── Section builders (new v8 layout) ─────────────────────────
     const headerHtml   = buildHeaderSection(vehicleData, result);
-    const primaryHtml  = buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct);
-    const insightHtml  = buildDecisionInsight(margin, hasCurrentPrice && rmb != null);
-    const rangeHtml    = buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice);
+    const primaryHtml  = buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality);
+    const insightHtml  = buildDecisionInsight(margin, hasCurrentPrice && rmb != null, currentPrice, emp);
+    const rangeHtml    = buildRangeVisualization(rangeLow, rangeHigh, emp, hasCurrentPrice ? currentPrice : null);
     const compsHtml    = buildComparablesChart(raw, emp);
     const signalsHtml  = buildSupportingSignals(result, compQuality);
     const warningHtml  = buildWarningCard(manualReview);
@@ -1350,10 +1931,45 @@
     const inputCoverageHtml = buildCollapsibleBlock('Input Coverage', buildDataQuality(vehicleData), 'muted');
 
     // ── Collapsible: Debug Details ───────────────────────────────
-    const debugPayload = JSON.stringify({ vehicle: vehicleData, result: result._raw }, null, 2);
-    const debugHtml    = buildCollapsibleBlock(
+    const dbg = vehicleData._extractionDebug || {};
+
+    // Mirror exactly what predict() sends to /v1/predict
+    const finalPayloadSentToApi = {
+      year:             vehicleData.year,
+      make:             vehicleData.make,
+      model:            vehicleData.model,
+      trim:             vehicleData.trim,
+      mileage:          vehicleData.mileage,
+      vin:              vehicleData.vin,
+      fuelType:         vehicleData.fuelType,
+      drivetrain:       vehicleData.drivetrain,
+      transmission:     vehicleData.transmission,
+      engine:           vehicleData.engine,
+      exteriorColor:    vehicleData.exteriorColor,
+      doors:            vehicleData.doors,
+      titleFull:        vehicleData.titleFull,
+      cityAuction:      vehicleData.cityAuction,
+      sellerName:       vehicleData.sellerName,
+      source:           vehicleData.source,
+      section:          vehicleData.section,
+      auctionRunTimeAt: vehicleData.auctionRunTimeAt,
+    };
+
+    const debugPayload = {
+      extractionStatus: dbg.extractionStatus || {
+        sourceUsed: 'row', opened: false, visiblePopupFound: false,
+        detailsTabClicked: false, vinMatched: false, runNumberMatched: false, warnings: [],
+      },
+      rowData:              dbg.prePopupData  || null,
+      rightPanelData:       null,
+      popupData:            dbg.popupData     || null,
+      popupFieldMap:        dbg.popupFieldMap || {},
+      finalPayloadSentToApi,
+      apiResult:            result._raw,
+    };
+    const debugHtml = buildCollapsibleBlock(
       'Debug Details',
-      `<pre class="autopluto-debug-pre">${esc(debugPayload)}</pre>`,
+      `<pre class="autopluto-debug-pre">${esc(JSON.stringify(debugPayload, null, 2))}</pre>`,
       'muted'
     );
 
@@ -1363,10 +1979,10 @@
       <div class="autopluto-card-body">
         ${primaryHtml}
         ${insightHtml}
+        ${warningHtml}
         ${rangeHtml}
         ${compsHtml}
         ${signalsHtml}
-        ${warningHtml}
         ${inlineWarnings}
         <div class="autopluto-collapsibles">
           ${reportNotesHtml}
@@ -1379,8 +1995,12 @@
       ${buildFooterActions()}
     `;
 
-    // ── Close button ─────────────────────────────────────────────
+    // ── Close buttons (header ✕ + footer Close) ──────────────────
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActivePopover();
+    });
+    card.querySelector('.autopluto-close-footer-btn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       closeActivePopover();
     });
@@ -1562,19 +2182,46 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   function isVehicleRow(el) {
-    if (el.tagName !== 'TR') return false;
-    if (el.hasAttribute('data-cy-item-num')) return true;
-    return el.querySelector('.item-info-row') && el.querySelector('.mileage-row');
+    if (el.nodeType !== 1) return false;
+
+    // Table-view rows
+    if (el.tagName === 'TR') {
+      if (el.hasAttribute('data-cy-item-num')) return true;
+      return !!(el.querySelector('.item-info-row') && el.querySelector('.mileage-row'));
+    }
+
+    // Lane/kanban-view item cards — must not be the popup itself
+    if (el.classList.contains('vc-item-popup') || el.classList.contains('item-detail-popup')) return false;
+    if (el.closest && el.closest('.vc-item-popup, .item-detail-popup')) return false;
+    return !!(
+      (el.querySelector('.vc-details, .run-number, .item-info-row')) &&
+      el.closest && el.closest('.lane-content, .lane-panel-col')
+    );
   }
 
   function findVehicleRows(root) {
     const rows = [];
-    root.querySelectorAll('tr[data-cy-item-num]').forEach((r) => rows.push(r));
+    const seen = new Set();
+    const add  = (el) => { if (!seen.has(el)) { seen.add(el); rows.push(el); } };
+
+    // ── Table view ────────────────────────────────────────────
+    root.querySelectorAll('tr[data-cy-item-num]').forEach(add);
     root.querySelectorAll('tbody.vc-tbdy-vehlist > tr').forEach((r) => {
-      if (!r.hasAttribute('data-cy-item-num') && r.querySelector('.item-info-row')) {
-        rows.push(r);
-      }
+      if (!r.hasAttribute('data-cy-item-num') && r.querySelector('.item-info-row')) add(r);
     });
+
+    // ── Lane / kanban view ─────────────────────────────────────
+    // Items live as direct children of .lane-content; skip the popup overlay.
+    root.querySelectorAll('.lane-content > div, .lane-content > li').forEach((el) => {
+      if (el.classList.contains('vc-item-popup') || el.classList.contains('item-detail-popup')) return;
+      if (el.querySelector('.vc-details, .run-number, .item-info-row')) add(el);
+    });
+
+    // Also capture explicitly-classed vc-item cards anywhere in the subtree
+    root.querySelectorAll('div.vc-item, [class*="vc-item-card"]').forEach((el) => {
+      if (!el.closest('.vc-item-popup') && !el.closest('.item-detail-popup')) add(el);
+    });
+
     return rows;
   }
 
@@ -1583,8 +2230,39 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   async function handleEstimateClick(rowEl, tab, forceRefresh) {
-    const vehicleData = extractVehicleData(rowEl);
-    const settings    = await getSettings();
+    const settings = await getSettings();
+
+    // Stage 1: extract basic row + right-panel data
+    const baseData = extractVehicleData(rowEl);
+
+    // Show loading state immediately so the user has feedback while popup opens
+    setTabLoading(tab);
+    showLoadingPopover(rowEl, baseData.titleFull || 'Vehicle');
+
+    // Stage 2: popup enrichment (open popup → verify → extract → close → merge)
+    const { vehicleData, popupData, popupFieldMap, extractionStatus } =
+      await extractWithPopup(rowEl, baseData);
+
+    // Attach extraction debug — never sent to the API
+    vehicleData._extractionDebug = {
+      extractionStatus,
+      prePopupData: {
+        vin:             baseData.vin,
+        trim:            baseData.trim,
+        mileage:         baseData.mileage,
+        engine:          baseData.engine,
+        fuelType:        baseData.fuelType,
+        drivetrain:      baseData.drivetrain,
+        transmission:    baseData.transmission,
+        doors:           baseData.doors,
+        exteriorColor:   baseData.exteriorColor,
+        sellerName:      baseData.sellerName,
+        cityAuction:     baseData.cityAuction,
+        vehicleLocation: baseData.metadata?.vehicleLocation,
+      },
+      popupData:    popupData    || null,
+      popupFieldMap: popupFieldMap || {},
+    };
 
     if (settings.debugMode) showDebugModal(vehicleData);
 
@@ -1592,14 +2270,12 @@
       const cached = getCache(vehicleData);
       if (cached) {
         setTabReady(tab);
+        closeActivePopover(); // dismiss the loading card we showed
         const card = showResultCard(rowEl, cached, vehicleData);
         attachRefresh(card, rowEl, tab);
         return;
       }
     }
-
-    setTabLoading(tab);
-    showLoadingPopover(rowEl, vehicleData.titleFull);
 
     try {
       const result = await predict(vehicleData);
@@ -1677,10 +2353,12 @@
     showBatchProgress(0, rows.length);
 
     for (const row of rows) {
-      const tab = row.querySelector('[data-autopluto-btn]');
+      const tab = _portalTabs.get(row) || null;
       try {
-        const vehicleData = extractVehicleData(row);
+        const baseData = extractVehicleData(row);
         if (tab) setTabLoading(tab);
+        // Sequential popup enrichment — _popupOperationActive guards overlap
+        const { vehicleData } = await extractWithPopup(row, baseData);
         const result = await predict(vehicleData);
         setCache(vehicleData, result);
         if (tab) setTabReady(tab);
@@ -1690,7 +2368,8 @@
       }
       done++;
       showBatchProgress(done, rows.length);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      // Slightly longer gap between rows to let popup open/close settle
+      await new Promise((resolve) => setTimeout(resolve, 800));
     }
   }
 

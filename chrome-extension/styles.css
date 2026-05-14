@@ -173,7 +173,7 @@
 /* ── Card header ─────────────────────────────────────────────── */
 .autopluto-card-header {
   background: linear-gradient(135deg, #0f2557 0%, #1e3fa8 55%, #2563eb 100%) !important;
-  padding: 14px 16px 12px !important;
+  padding: 10px 14px 8px !important;
   border-radius: 14px 14px 0 0 !important;
   border-bottom: 1px solid rgba(255,255,255,0.07) !important;
 }
@@ -245,8 +245,8 @@
 .autopluto-header-meta {
   display: flex !important;
   flex-wrap: wrap !important;
-  gap: 3px 10px !important;
-  margin-top: 8px !important;
+  gap: 2px 8px !important;
+  margin-top: 5px !important;
   align-items: center !important;
 }
 
@@ -298,10 +298,10 @@
 
 /* ── Card body ───────────────────────────────────────────────── */
 .autopluto-card-body {
-  padding: 14px 16px !important;
+  padding: 10px 14px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -310,11 +310,11 @@
 
 .autopluto-decision-banner {
   border-radius: 10px !important;
-  padding: 14px 16px !important;
+  padding: 10px 14px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 12px !important;
+  gap: 10px !important;
 }
 
 .autopluto-decision-banner--good    { background: #052e16 !important; border: 1px solid #166534 !important; }
@@ -359,16 +359,16 @@
 }
 
 .autopluto-decision-amount {
-  font-size: 26px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
-  letter-spacing: -1.5px !important;
+  letter-spacing: -1px !important;
   line-height: 1 !important;
 }
 
 .autopluto-decision-amount--good    { color: #4ade80 !important; }
 .autopluto-decision-amount--caution { color: #fbbf24 !important; }
 .autopluto-decision-amount--danger  { color: #f87171 !important; }
-.autopluto-decision-amount--neutral { color: #6b7280 !important; font-size: 20px !important; }
+.autopluto-decision-amount--neutral { color: #6b7280 !important; font-size: 16px !important; }
 
 .autopluto-decision-amount-label {
   font-size: 9px !important;
@@ -564,10 +564,10 @@
   background: #1a0c00 !important;
   border: 1.5px solid #d97706 !important;
   border-radius: 8px !important;
-  padding: 11px 14px !important;
+  padding: 8px 12px !important;
   display: flex !important;
   align-items: flex-start !important;
-  gap: 10px !important;
+  gap: 8px !important;
   box-shadow: 0 0 0 1px rgba(217,119,6,0.12), inset 0 0 20px rgba(217,119,6,0.04) !important;
 }
 
@@ -850,6 +850,18 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-copy-result-btn  { }
 .autopluto-copy-payload-btn { }
 
+.autopluto-footer-btn--close {
+  background: transparent !important;
+  color: #ef4444 !important;
+  border-color: rgba(239,68,68,0.3) !important;
+  margin-left: auto !important;
+}
+.autopluto-footer-btn--close:hover {
+  background: rgba(239,68,68,0.1) !important;
+  color: #f87171 !important;
+  border-color: rgba(239,68,68,0.5) !important;
+}
+
 /* ── Error card ──────────────────────────────────────────────── */
 .autopluto-card-error {
   border-color: #991b1b !important;
@@ -1030,8 +1042,8 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 /* ── Card body ────────────────────────────────────────────────── */
 .autopluto-card-body {
-  padding: 16px !important;
-  gap: 12px !important;
+  padding: 10px 14px !important;
+  gap: 8px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1049,13 +1061,13 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-emp-hero {
   flex: 1 1 58% !important;
   background: linear-gradient(145deg, #080f1e 0%, #0d1e3a 55%, #0f2348 100%) !important;
-  border: 1.5px solid #1e3a5f !important;
+  border: 1.5px solid #243c5f !important;
   border-radius: 12px !important;
-  padding: 18px 18px 16px !important;
+  padding: 12px 14px 10px !important;
   display: flex !important;
   flex-direction: column !important;
   min-width: 0 !important;
-  box-shadow: 0 0 0 1px rgba(59,130,246,0.07), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.05) !important;
 }
 
 .autopluto-emp-hero-label {
@@ -1064,27 +1076,53 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   text-transform: uppercase !important;
   letter-spacing: 1px !important;
   color: #60a5fa !important;
-  margin-bottom: 9px !important;
+  margin-bottom: 6px !important;
 }
 
 .autopluto-emp-hero-value {
-  font-size: 36px !important;
+  font-size: 28px !important;
   font-weight: 900 !important;
-  color: #dbeafe !important;
-  letter-spacing: -2px !important;
+  color: #e0ecff !important;
+  letter-spacing: -1.5px !important;
   line-height: 1 !important;
-  margin-bottom: 14px !important;
+  margin-bottom: 10px !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  text-shadow: 0 0 32px rgba(96,165,250,0.22) !important;
 }
 
-/* Confidence row inside EMP hero */
+/* Confidence + Quality block inside EMP hero — column layout */
 .autopluto-emp-conf {
   display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
+  flex-direction: column !important;
+  gap: 5px !important;
   margin-top: auto !important;
+}
+
+/* Each row: label + meter + badge on one line */
+.autopluto-emp-conf-row,
+.autopluto-emp-quality-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+/* "Confidence" / "Quality" key labels */
+.autopluto-emp-conf-key {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #60a5fa !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 62px !important;
+}
+
+/* Dim variant for "Quality" label (secondary) */
+.autopluto-emp-conf-key--dim {
+  color: #4b6a8e !important;
 }
 
 .autopluto-emp-conf-meter {
@@ -1093,7 +1131,7 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   background: rgba(30,58,95,0.9) !important;
   border-radius: 2px !important;
   overflow: hidden !important;
-  max-width: 72px !important;
+  max-width: 64px !important;
 }
 
 .autopluto-emp-conf-fill {
@@ -1120,6 +1158,21 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-emp-conf-badge--red    { background: rgba(239,68,68,0.1)   !important; color: #ef4444 !important; border: 1px solid rgba(239,68,68,0.24)  !important; }
 .autopluto-emp-conf-badge--gray   { background: rgba(107,114,128,0.08)!important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.18)!important; }
 
+/* Quality badge — visually secondary (smaller, dimmer) */
+.autopluto-emp-quality-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.1px !important;
+  white-space: nowrap !important;
+}
+.autopluto-emp-quality-badge--green  { background: rgba(16,185,129,0.07)  !important; color: #6ee7b7 !important; border: 1px solid rgba(16,185,129,0.18) !important; }
+.autopluto-emp-quality-badge--yellow { background: rgba(245,158,11,0.07)  !important; color: #fcd34d !important; border: 1px solid rgba(245,158,11,0.18) !important; }
+.autopluto-emp-quality-badge--red    { background: rgba(239,68,68,0.07)   !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.18)  !important; }
+.autopluto-emp-quality-badge--gray   { background: rgba(107,114,128,0.05) !important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.15)!important; }
+
 /* ── Right stack (~42% width) ─────────────────────────────────── */
 .autopluto-right-stack {
   flex: 0 0 42% !important;
@@ -1132,11 +1185,11 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 /* RMB mini card */
 .autopluto-rmb-mini {
   flex: 1 !important;
-  background: #05160d !important;
-  border: 1px solid #065f46 !important;
+  background: #051a0e !important;
+  border: 1px solid #0a6840 !important;
   border-radius: 10px !important;
-  padding: 13px 14px !important;
-  box-shadow: 0 0 0 1px rgba(16,185,129,0.06) !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.08), inset 0 1px 0 rgba(255,255,255,0.03) !important;
 }
 .autopluto-rmb-mini-label {
   font-size: 8px !important;
@@ -1144,30 +1197,30 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   text-transform: uppercase !important;
   letter-spacing: 0.8px !important;
   color: #34d399 !important;
-  margin-bottom: 5px !important;
+  margin-bottom: 4px !important;
 }
 .autopluto-rmb-mini-value {
-  font-size: 21px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   color: #6ee7b7 !important;
-  letter-spacing: -0.8px !important;
+  letter-spacing: -0.5px !important;
   line-height: 1.1 !important;
   white-space: nowrap !important;
 }
 .autopluto-rmb-mini-sub {
-  font-size: 9px !important;
-  color: rgba(110,231,183,0.45) !important;
-  margin-top: 3px !important;
+  font-size: 8px !important;
+  color: rgba(110,231,183,0.5) !important;
+  margin-top: 2px !important;
   font-weight: 500 !important;
 }
 
 /* Current Bid mini card */
 .autopluto-bid-mini {
   flex: 1 !important;
-  background: #0c1120 !important;
-  border: 1px solid #1f2937 !important;
+  background: #0b1020 !important;
+  border: 1px solid #232e42 !important;
   border-radius: 10px !important;
-  padding: 13px 14px !important;
+  padding: 10px 12px !important;
 }
 .autopluto-bid-mini-label {
   font-size: 8px !important;
@@ -1175,19 +1228,19 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   text-transform: uppercase !important;
   letter-spacing: 0.8px !important;
   color: #6b7280 !important;
-  margin-bottom: 5px !important;
+  margin-bottom: 4px !important;
 }
 .autopluto-bid-mini-value {
-  font-size: 21px !important;
+  font-size: 17px !important;
   font-weight: 800 !important;
   color: #d1d5db !important;
-  letter-spacing: -0.8px !important;
+  letter-spacing: -0.5px !important;
   line-height: 1.1 !important;
   white-space: nowrap !important;
 }
 .autopluto-bid-mini-value--none {
   color: #374151 !important;
-  font-size: 18px !important;
+  font-size: 15px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1197,15 +1250,15 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-insight-bar {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
-  padding: 9px 13px !important;
+  gap: 8px !important;
+  padding: 7px 11px !important;
   border-radius: 8px !important;
   border-left: 3px solid transparent !important;
 }
-.autopluto-insight-bar--good    { background: rgba(5,46,22,0.65) !important;  border-left-color: #22c55e !important; }
-.autopluto-insight-bar--caution { background: rgba(28,21,0,0.65) !important;  border-left-color: #f59e0b !important; }
-.autopluto-insight-bar--danger  { background: rgba(32,11,11,0.65)!important;  border-left-color: #ef4444 !important; }
-.autopluto-insight-bar--neutral { background: rgba(15,20,32,0.65)!important;  border-left-color: #374151 !important; }
+.autopluto-insight-bar--good    { background: rgba(5,46,22,0.8) !important;   border-left-color: #22c55e !important; border: 1px solid rgba(22,101,52,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--caution { background: rgba(28,21,0,0.8) !important;   border-left-color: #f59e0b !important; border: 1px solid rgba(120,53,15,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--danger  { background: rgba(32,11,11,0.8) !important;  border-left-color: #ef4444 !important; border: 1px solid rgba(127,29,29,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--neutral { background: rgba(12,17,28,0.85) !important; border-left-color: #4b5563 !important; border: 1px solid rgba(55,65,81,0.5)  !important; border-left-width: 3px !important; }
 
 .autopluto-insight-dot {
   width: 7px !important;
@@ -1250,25 +1303,176 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-insight-bar--neutral .autopluto-insight-meta { color: #4b5563 !important; }
 
 /* ═══════════════════════════════════════════════════════════════
-   D. EXPECTED MARKET RANGE  (premium range rail)
+   D. EXPECTED MARKET RANGE  (premium range rail v2)
    ═══════════════════════════════════════════════════════════════ */
 
 .autopluto-range-card {
-  background: #060d1a !important;
-  border: 1px solid #1a2d48 !important;
+  background: linear-gradient(145deg, #060d1a 0%, #091422 100%) !important;
+  border: 1px solid #1e3a5a !important;
   border-radius: 12px !important;
-  padding: 14px 16px !important;
+  padding: 12px 14px 14px !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.06), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Header row: title left, spread pill right */
+.autopluto-range-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+  gap: 8px !important;
 }
 
 .autopluto-range-card-title {
-  font-size: 9px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.7px !important;
-  color: #3b82f6 !important;
-  margin-bottom: 14px !important;
+  letter-spacing: 0.8px !important;
+  color: #60a5fa !important;
 }
 
+.autopluto-range-spread-pill {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,0.1) !important;
+  border: 1px solid rgba(59,130,246,0.22) !important;
+  border-radius: 100px !important;
+  padding: 2px 9px !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Endpoint values row (Low left / High right) above the track */
+.autopluto-range-endpoints {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-range-endpoint {}
+
+.autopluto-range-endpoint--high {
+  text-align: right !important;
+}
+
+.autopluto-range-endpoint-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #374151 !important;
+  margin-bottom: 2px !important;
+}
+
+.autopluto-range-endpoint--low  .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
+.autopluto-range-endpoint--high .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
+
+.autopluto-range-endpoint-val {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.6px !important;
+  line-height: 1 !important;
+}
+
+.autopluto-range-endpoint--low  .autopluto-range-endpoint-val { color: #7dd3fc !important; }
+.autopluto-range-endpoint--high .autopluto-range-endpoint-val { color: #93c5fd !important; }
+
+/* Track wrapper — relative so the EMP marker can be absolutely positioned */
+.autopluto-range-track-wrap {
+  position: relative !important;
+  padding-bottom: 20px !important; /* space for the EMP label below */
+}
+
+/* The actual track bar */
+.autopluto-range-track-v2 {
+  position: relative !important;
+  height: 10px !important;
+  background: #0a1628 !important;
+  border-radius: 5px !important;
+  border: 1px solid #1a3354 !important;
+  overflow: visible !important;
+}
+
+/* Gradient fill that spans the full track */
+.autopluto-range-track-fill-v2 {
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 5px !important;
+  background: linear-gradient(90deg,
+    #1a3d78 0%,
+    #1d4ed8 20%,
+    #3b82f6 45%,
+    #60a5fa 55%,
+    #3b82f6 75%,
+    #1d4ed8 88%,
+    #1a3d78 100%) !important;
+  opacity: 0.5 !important;
+}
+
+/* Round end-caps on the track */
+.autopluto-range-track-low-cap,
+.autopluto-range-track-high-cap {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: 2px solid #0d1e38 !important;
+  z-index: 2 !important;
+}
+
+.autopluto-range-track-low-cap {
+  left: -1px !important;
+  background: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.35), 0 0 10px rgba(37,99,235,0.4) !important;
+}
+
+.autopluto-range-track-high-cap {
+  right: -1px !important;
+  background: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96,165,250,0.35), 0 0 10px rgba(96,165,250,0.4) !important;
+}
+
+/* EMP marker — positioned dynamically via inline style left:XX% */
+.autopluto-range-emp-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-emp-dot {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 38% 36%, #93c5fd, #3b82f6) !important;
+  border: 2.5px solid #070e1c !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 0 16px rgba(59,130,246,0.7) !important;
+  flex-shrink: 0 !important;
+}
+
+/* EMP label sits BELOW the track (via the padding-bottom on the wrap) */
+.autopluto-range-emp-label {
+  position: absolute !important;
+  top: 12px !important; /* below the dot */
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #60a5fa !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* Keep legacy classes for any code that still references them */
 .autopluto-range-viz { margin-bottom: 2px !important; }
 
 .autopluto-range-card .autopluto-range-track {
@@ -1276,54 +1480,87 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   height: 12px !important;
   background: #0a1526 !important;
   border-radius: 6px !important;
-  margin-bottom: 8px !important;
-  border: 1px solid #1a2d48 !important;
+  margin-bottom: 0 !important;
+  border: 1px solid #1e3558 !important;
 }
 
 .autopluto-range-card .autopluto-range-track-fill {
   position: absolute !important;
   inset: 0 !important;
-  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 22%, #3b82f6 50%, #0ea5e9 68%, #1d4ed8 82%, #1e3a8a 100%) !important;
+  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 22%, #2563eb 50%, #0ea5e9 68%, #1d4ed8 82%, #1e3a8a 100%) !important;
   border-radius: 6px !important;
-  opacity: 0.4 !important;
+  opacity: 0.55 !important;
 }
 
-/* Multi-marker dots (on the range track) */
 .autopluto-rm {
   position: absolute !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 18px !important;
-  height: 18px !important;
+  width: 20px !important;
+  height: 20px !important;
   border-radius: 50% !important;
-  border: 2.5px solid #06101e !important;
+  border: 2.5px solid #070e1c !important;
   z-index: 2 !important;
   cursor: default !important;
   transition: transform 0.15s ease, filter 0.15s ease !important;
 }
 .autopluto-rm:hover {
-  transform: translate(-50%, -50%) scale(1.3) !important;
+  transform: translate(-50%, -50%) scale(1.4) !important;
+  z-index: 3 !important;
 }
-.autopluto-rm--emp     { background: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.22), 0 0 10px rgba(59,130,246,0.35) !important; }
-.autopluto-rm--rmb     { background: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.22), 0 0 10px rgba(16,185,129,0.35) !important; }
-.autopluto-rm--current { background: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.22),  0 0 10px rgba(249,115,22,0.35)  !important; }
+.autopluto-rm--emp {
+  background: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.30), 0 0 14px rgba(59,130,246,0.55) !important;
+  border-color: #1e3a8a !important;
+}
+.autopluto-rm--rmb     { background: #10b981 !important; border-color: #064e3b !important; }
+.autopluto-rm--current { background: #f97316 !important; border-color: #7c2d12 !important; }
 
 .autopluto-range-bounds {
   display: flex !important;
   justify-content: space-between !important;
-  font-size: 10px !important;
-  color: #4b5563 !important;
-  font-weight: 600 !important;
-  margin-bottom: 12px !important;
+  align-items: flex-end !important;
+  margin-top: 5px !important;
+  margin-bottom: 8px !important;
 }
 
-/* Range legend — 3-column grid */
+.autopluto-range-bound {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.autopluto-range-bound--high {
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+
+.autopluto-range-bound-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #4b5563 !important;
+}
+
+.autopluto-range-bound-val {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #93c5fd !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1 !important;
+}
+
+.autopluto-range-bound--low  .autopluto-range-bound-val { color: #7dd3fc !important; }
+.autopluto-range-bound--high .autopluto-range-bound-val { color: #93c5fd !important; }
+
 .autopluto-range-legend {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 6px !important;
-  border-top: 1px solid #162035 !important;
-  padding-top: 11px !important;
+  border-top: 1px solid #1a2f4a !important;
+  padding-top: 12px !important;
+  margin-top: 2px !important;
 }
 
 .autopluto-range-legend-item {
@@ -1332,15 +1569,16 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   gap: 6px !important;
 }
 .autopluto-range-legend-dot {
-  width: 8px !important;
-  height: 8px !important;
+  width: 9px !important;
+  height: 9px !important;
   border-radius: 50% !important;
   flex-shrink: 0 !important;
   margin-top: 2px !important;
+  box-shadow: 0 0 6px currentColor !important;
 }
-.autopluto-range-legend-dot--emp     { background: #3b82f6 !important; }
-.autopluto-range-legend-dot--rmb     { background: #10b981 !important; }
-.autopluto-range-legend-dot--current { background: #f97316 !important; }
+.autopluto-range-legend-dot--emp     { background: #3b82f6 !important; box-shadow: 0 0 6px rgba(59,130,246,0.55) !important; }
+.autopluto-range-legend-dot--rmb     { background: #10b981 !important; box-shadow: 0 0 6px rgba(16,185,129,0.55) !important; }
+.autopluto-range-legend-dot--current { background: #f97316 !important; box-shadow: 0 0 6px rgba(249,115,22,0.55) !important; }
 
 .autopluto-range-legend-info {
   display: flex !important;
@@ -1350,20 +1588,36 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 }
 .autopluto-range-legend-lbl {
   font-size: 8px !important;
-  color: #4b5563 !important;
+  color: #64748b !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.3px !important;
   white-space: nowrap !important;
 }
 .autopluto-range-legend-val {
-  font-size: 11px !important;
-  color: #9ca3af !important;
+  font-size: 12px !important;
+  color: #c7d8f0 !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
+  letter-spacing: -0.3px !important;
 }
 
-/* Fallback simple range */
+.autopluto-range-legend--compact {
+  grid-template-columns: repeat(2, auto) !important;
+  justify-content: flex-start !important;
+  gap: 4px 16px !important;
+  border-top-color: #1a2f4a !important;
+  padding-top: 8px !important;
+  margin-top: 0 !important;
+}
+.autopluto-range-legend--compact .autopluto-range-legend-val {
+  font-size: 11px !important;
+}
+
+.autopluto-range-simple-val--bid {
+  color: #f97316 !important;
+}
+
 .autopluto-range-simple {
   display: flex !important;
   gap: 20px !important;
@@ -1392,31 +1646,31 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
    ═══════════════════════════════════════════════════════════════ */
 
 .autopluto-comps-card {
-  background: #060d1a !important;
-  border: 1px solid #1a2d48 !important;
+  background: #070e1c !important;
+  border: 1px solid #1e3558 !important;
   border-radius: 12px !important;
-  padding: 14px 16px !important;
+  padding: 10px 12px !important;
 }
 
 .autopluto-comps-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  margin-bottom: 12px !important;
+  margin-bottom: 8px !important;
 }
 .autopluto-comps-title {
-  font-size: 9px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.7px !important;
-  color: #3b82f6 !important;
+  color: #60a5fa !important;
 }
 .autopluto-comps-count-badge {
   font-size: 9px !important;
   font-weight: 600 !important;
-  color: #4b5563 !important;
+  color: #64748b !important;
   background: #0a1526 !important;
-  border: 1px solid #1e3a5f !important;
+  border: 1px solid #243c5f !important;
   padding: 2px 7px !important;
   border-radius: 100px !important;
 }
@@ -1434,17 +1688,17 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   overflow: visible !important;
 }
 
-/* SVG data points */
+/* SVG data points — larger and brighter for readability */
 .autopluto-comp-dot {
-  fill: #1d4ed8 !important;
-  stroke: #060d1a !important;
+  fill: #50c8f8 !important;
+  stroke: #071828 !important;
   stroke-width: 2 !important;
   cursor: pointer !important;
-  transition: fill 0.15s ease !important;
+  transition: fill 0.15s ease, filter 0.15s ease, r 0.15s ease !important;
 }
 .autopluto-comp-dot:hover {
-  fill: #60a5fa !important;
-  filter: drop-shadow(0 0 5px rgba(96,165,250,0.6)) !important;
+  fill: #a5e3ff !important;
+  filter: drop-shadow(0 0 8px rgba(80,200,248,0.9)) !important;
 }
 
 /* Hover tooltip */
@@ -1453,39 +1707,41 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   position: absolute !important;
   z-index: 20 !important;
   pointer-events: none !important;
-  background: #0a1526 !important;
-  border: 1px solid #1e3a5f !important;
+  background: #0d1e38 !important;
+  border: 1px solid #2a4a72 !important;
   border-radius: 8px !important;
   padding: 9px 11px !important;
-  min-width: 144px !important;
-  max-width: 200px !important;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.6) !important;
+  min-width: 152px !important;
+  max-width: 210px !important;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.75), 0 0 0 1px rgba(56,189,248,0.08) !important;
   font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
 }
 .autopluto-comp-tt-title {
   font-size: 11px !important;
   font-weight: 700 !important;
-  color: #dbeafe !important;
-  margin-bottom: 6px !important;
+  color: #e2ecff !important;
+  margin-bottom: 7px !important;
   line-height: 1.3 !important;
+  border-bottom: 1px solid #1e3558 !important;
+  padding-bottom: 6px !important;
 }
 .autopluto-comp-tt-row {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
-  margin-top: 3px !important;
+  margin-top: 4px !important;
 }
 .autopluto-comp-tt-row span {
   font-size: 9px !important;
-  color: #4b5563 !important;
+  color: #64748b !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.3px !important;
 }
 .autopluto-comp-tt-row strong {
-  font-size: 10px !important;
-  color: #93c5fd !important;
+  font-size: 11px !important;
+  color: #bcd5f5 !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
 }
@@ -1505,7 +1761,7 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 }
 .autopluto-comps-empty-text {
   font-size: 10px !important;
-  color: #4b5563 !important;
+  color: #64748b !important;
   line-height: 1.55 !important;
 }
 
