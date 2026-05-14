@@ -1,398 +1,237 @@
-# OPENLANE Estimator Extension — UI Update Report
+# OpenLane Estimator Extension – UI Update Notes
 
-**Date:** 2026-05-13 (v7 — Flush join between `$` handle and Estimate label)
-**Scope:** Chrome Extension — Side-tab handle + label seamless join
-**Files modified:** `styles.css`
-
----
-
-## 1. Summary of Changes
-
-### v7 (this update)
-
-Made the `$` handle and "Estimate" label join as a single seamless block. Removed all border-radius from the handle (no rounding on either side), kept the right-only rounding on the label, and refined the blue gradient palette to a cleaner, more professional tone. The two pieces now appear as one continuous blue UI control.
-
-### v6 (previous)
-
-Refined the Estimate side-tab (`$` handle) that appears to the right of each vehicle row. Corrected border-radius so the left edge is completely flush against the row boundary (zero curve), kept the right edge slightly rounded, adjusted hover behavior so the "Estimate" label only expands when hovering directly over the `$` tab itself (not on general row hover), and lightened the blue color palette for a cleaner look.
-
-### v5 (before v6)
-
-Complete visual overhaul of the estimate result popover. Replaced the basic white tooltip-style card with a professional, dark-themed estimate report card. No build system added — all changes are plain CSS and vanilla JS.
+## Version: v8 — Estimate Report Card Redesign
+**Date:** May 2026
 
 ---
 
-## 2. v7 UI Changes Made
+## Overview
 
-### Handle shape
-- **Before (v6):** `border-radius: 0 6px 6px 0` — right edge was rounded, causing a visible gap/curve where the handle meets the label
-- **After (v7):** `border-radius: 0` — completely rectangular on all sides; sits perfectly flush against the label
-
-### Expanded label shape
-- **Unchanged:** `border-radius: 0 6px 6px 0` — only the outer right edge is rounded; the left edge (where it meets the handle) is perfectly straight
-
-### Handle color
-- **Before (v6):** `linear-gradient(180deg, #4f8df7, #2f6fe6)`
-- **After (v7):** `linear-gradient(180deg, #4A90F5, #2F6FE4)` — slightly cleaner, more professional tone
-
-### Expanded label color
-- **Before (v6):** `linear-gradient(180deg, #3f7ff0, #2d62d6)`
-- **After (v7):** `linear-gradient(180deg, #3F82F0, #285FD6)` — consistent modern blue
-
-### Shadow
-- Handle shadow **removed** entirely — no shadow on the join boundary; clean flush appearance
-- Label shadow: outer-only (`2px 0 8px`) so the shadow only bleeds outward, not inward toward the handle
-
-### Final joined shape
-| Edge | Rounding |
-|------|----------|
-| Left edge of `$` handle | straight (0) |
-| Right edge of `$` handle | straight (0) — joins flush with label |
-| Left edge of Estimate label | straight (0) — joins flush with handle |
-| Right edge of Estimate label | 6 px rounded (outer edge only) |
-
-### Hover behavior (unchanged from v6)
-- Row hover → `$` handle becomes visible
-- Tab hover → "Estimate" label slides out
-- Row hover alone does NOT expand the label
-
-## 3. v6 UI Changes (preserved reference)
-
-### Handle shape
-- **Before:** `border-radius: 7px 0 0 7px` — left edge was rounded (visually detached from row boundary)
-- **After:** `border-radius: 0 6px 6px 0` — left edge is completely flush (zero curve), only the right edge is rounded
-
-### Expanded label shape
-- **Before:** `border-radius: 0 7px 7px 0`
-- **After:** `border-radius: 0 6px 6px 0` — consistent, right-only rounding across both handle and label
-
-### Handle color
-- **Before:** `linear-gradient(180deg, #2563eb, #1d4ed8)` — heavy dark blue
-- **After:** `linear-gradient(180deg, #4f8df7, #2f6fe6)` — lighter, softer blue
-
-### Expanded label color
-- **Before:** `linear-gradient(180deg, #1d4ed8, #1e40af)` — heavy dark navy
-- **After:** `linear-gradient(180deg, #3f7ff0, #2d62d6)` — lighter, professional blue
-
-### Shadow reduction
-- Handle shadow: `0 2px 8px rgba(37,99,235,0.35)` → `0 1px 5px rgba(47,111,230,0.28)` (lighter)
-- Label shadow: `0 2px 10px rgba(30,64,175,0.35)` → `0 1px 7px rgba(45,98,214,0.28)` (lighter)
-
-### Hover behavior fix
-- **Before:** Both `tr` row hover and direct tab hover expanded the "Estimate" label:
-  ```css
-  .autopluto-estimate-tab:hover .autopluto-estimate-label,
-  .autopluto-estimate-tab.autopluto-tab-row-hover .autopluto-estimate-label { ... }
-  ```
-- **After:** Only direct tab hover expands the label:
-  ```css
-  .autopluto-estimate-tab:hover .autopluto-estimate-label { ... }
-  ```
-- Row hover (`autopluto-tab-row-hover`) still makes the `$` handle **visible** (opacity: 1) — but the label stays hidden until the user hovers directly over the tab.
+Complete redesign of the in-page estimate popover into a polished **Auction Estimate Report Card**.
+The goal was to make pricing, bid decisions, confidence, risk, and review status dramatically
+clearer and more actionable, without adding any build step or changing the extension loading model.
 
 ---
 
-## 4. Behavior Summary (v7)
+## Layout Changes
 
-| Event | Result |
-|-------|--------|
-| Mouse enters vehicle row | `$` handle appears (opacity 1) |
-| Mouse leaves vehicle row | `$` handle fades out (opacity 0), unless mouse is over the tab |
-| Mouse hovers over `$` tab | `$` handle + "Estimate" label visible as one seamless block |
-| Mouse leaves `$` tab | Label collapses back |
-| Click on tab | Opens estimate popover (unchanged) |
+The popover is now structured into clearly separated, labelled sections:
 
----
-
-## 5. Tests to Perform (v7)
-
-| Test | Expected |
-|------|----------|
-| Hover over a vehicle row | Only `$` handle appears, label stays hidden |
-| Move mouse onto the `$` tab | Label slides out flush with the `$` handle — no visible seam |
-| Move mouse off the `$` tab | Label collapses |
-| Inspect right edge of `$` handle | No rounding — perfectly straight where it meets the label |
-| Inspect right edge of "Estimate" label | Slight rounding (6 px) — outer edge only |
-| Inspect join between `$` and "Estimate" | Flush, seamless — looks like one continuous blue block |
-| Blue color of handle | `#4A90F5 → #2F6FE4` — clean, modern blue |
-| Blue color of label | `#3F82F0 → #285FD6` — slightly deeper, consistent |
-| Click the tab | Estimate popover opens correctly |
-| After DOM refresh (row reinjection) | Tab still works, no duplicates |
+| Section | Description |
+|---------|-------------|
+| A — Header | Vehicle title, "Estimate Report" badge, model version badge, calibration version badge |
+| B — Vehicle identity row | VIN, mileage, city, seller, trim — all shown as small tags |
+| C — Main pricing grid | Est. Market Price / Rec. Max Bid / Current Bid — 3 cards |
+| D — Secondary prices sub-grid | Model Price, Calibrated, Adjusted, Comp Median — compact 4-col grid |
+| E — Decision banner | Green / yellow / red contextual bid-vs-max-bid decision |
+| F — Expected range | `Expected Market Range   $X — $Y` — dedicated row |
+| G — Badge pills | Confidence · Safety · Comps · Quality · Fallback · Manual Review |
+| H — Manual review warning | Amber highlighted box when `manual_review_required = true` |
+| I — General warnings | Bid > market price warning, VIN missing warning |
+| J — Report Notes | Structured bullet list (reason array + calibration/fallback/comp notes) |
+| K — API Warnings | Separate structured list from `warnings[]` array |
+| L — Adjustment Details | Collapsible accordion: risk %, discount %, blend reason, blend weight, risk reasons |
+| M — Input Coverage | Data quality grid (VIN, mileage, city, seller, trim, drive, fuel, engine) |
+| N — Debug Details | Collapsible accordion with full raw JSON payload |
+| O — Footer | Refresh · Copy Result buttons |
 
 ---
 
-## 6. Acceptance Criteria (v7)
+## New Sections Added
 
-- [x] `$` handle has `border-radius: 0` — no rounding on any edge
-- [x] "Estimate" label has `border-radius: 0 6px 6px 0` — only outer right edge rounded
-- [x] `$` handle and "Estimate" label are perfectly flush (no visible seam)
-- [x] Blue color is improved (`#4A90F5/#2F6FE4` handle, `#3F82F0/#285FD6` label)
-- [x] No shadow on handle (clean join)
-- [x] Row hover shows only the `$` handle
-- [x] Tab hover expands to "Estimate" label
-- [x] Popover still opens on click
-- [x] No duplicate tabs or layout breakage
-- [x] Works after DOM refresh
-
----
-
-## 6. v5 UI Changes (preserved reference)
-
-### Overall card
-- **Dark background:** `#111827` (gray-900 / Tailwind-style)
-- **Width:** increased from 320 px → **400 px**
-- **Border radius:** 12 px with subtle shadow `0 24px 60px rgba(0,0,0,.7)`
-- **Font:** system sans-serif, better hierarchy through weight and size contrast
-- **Thin scrollbar** styled for dark theme
-
-### Header section
-- **Blue gradient** `#1e3a8a → #2563eb` (dark navy to bright blue)
-- **Vehicle title** — 14 px, weight 700, white
-- **"AI Estimate" badge** — frosted pill, always visible
-- **Model version badge** — monospace, muted frosted pill (shows when API returns `model_version`)
-- **VIN line** — monospace, muted white under title
-- **Mileage tag** — muted white, right of VIN
-- **Close button** — hover highlights with frosted background
-
-### Price summary grid
-Three price cards in an auto-fit grid:
-
-| Card | Style | Color |
-|------|-------|-------|
-| Est. Market Price | Dark blue tint `#0f1e3a` | Blue value `#93c5fd` |
-| **Rec. Max Bid** | **Dark green tint `#052e16`**, emphasized | **Green value `#10b981`, 18 px** |
-| Current Bid | Dark neutral `#1a1f2e` | Gray value `#9ca3af` |
-
-When no current bid price, only 2 cards shown (auto-fit handles it).
-
-### Decision banner
-New colored banner below the price grid. Logic:
-
-| Condition | Color | Title | Subtitle |
-|-----------|-------|-------|----------|
-| `margin > 1000` | Green `#052e16` | "Good room to bid" | `$X below recommended max bid` |
-| `0 ≤ margin ≤ 1000` | Yellow `#1c1500` | "Close to limit" | "Only $X below max bid" |
-| `margin < 0` | Red `#1f0a0a` | "Above recommended max" | `$X over max bid` |
-| No current price | Neutral gray | "No current bid price" | explanation |
-
-### Badge pills section
-Replaced flat text + badge combos with pill-style items:
-
-- **Confidence:** green/yellow/red based on high/medium/low
-- **Safety:** green (safe/low risk), yellow (moderate), red (risky/high risk)
-- **Comps:** blue pill showing comparable count
-- **Fallback:** green (exact/local), yellow (regional/global/unknown)
-
-### Input Coverage (Data Quality)
-New 4-column grid showing which fields were captured:
-`VIN · Mileage · City · Seller · Trim · Drive · Fuel · Engine`
-
-- Green dot + label = field captured
-- Gray dot + label = field missing
-- "Missing: X, Y, Z" note shown if any fields absent
-
-### Report Notes
-Replaced long mashed `reason` string with structured bullet list:
-
+### Expected Market Range
+Previously missing entirely. Now shown as:
 ```
-Report Notes:
-• 5 comparable vehicles found
-• Market fallback used: global
-• Calibration applied: v15.4a   ← or "Calibration artifact not available" if null
-• Model version: catboost-v3.2
-• No CARFAX / condition data included
-• [any extra reason parts not already covered]
+Expected Market Range    $3,344 — $4,812
 ```
+Fields used: `expected_range_low`, `expected_range_high`
 
-**Calibration fix:** `normaliseResponse` now reads `raw.calibration_version` from the API response (was hardcoded to `null`). "Calibration artifact not available" is only shown when `calibration_version` is actually null/missing from the response.
+### Secondary Prices Sub-Grid
+A compact 4-column panel below the main pricing grid showing:
+- `model_price`
+- `calibrated_model_price`
+- `adjusted_price`
+- `comparable_median_price` (shows `—` when null)
 
-### Collapsible debug panel
-Inside the popover (no separate modal):
-- Toggle button "⌥ Debug Details ▶"
-- Expands to show JSON: `{ vehicle: ..., result: ... }`
-- Collapses by default; re-positions popover on toggle
+### Manual Review Warning Box
+When `manual_review_required = true`, a distinct amber warning box appears:
+> ⚠ **Manual Review Required**
+> Do not rely on this estimate without additional review.
 
-### Footer
-Two clean action buttons:
+Also reflected as a red `Review: Required` badge pill.
 
-| Button | Class | Action |
-|--------|-------|--------|
-| ↻ Refresh | `autopluto-refresh-btn` | Force-reloads from API |
-| ⎘ Copy Result | `autopluto-copy-result-btn` | Copies JSON summary to clipboard |
+### Adjustment Details Accordion
+Collapsible panel (collapsed by default) showing:
+- `risk_adjustment_pct`
+- `effective_bid_discount_pct`
+- `blend_reason` (underscores replaced with spaces)
+- `model_blend_weight` (shown as %)
+- `risk_adjustment_reasons` (bullet list)
 
-Copy result payload:
-```json
-{
-  "vehicle": "2017 NISSAN MURANO SV",
-  "vin": "5N1AZ2...",
-  "estimated_market_price": 11311,
-  "recommended_max_bid": 9954,
-  "current_price": 5800,
-  "margin_to_max_bid": 4154,
-  "confidence": "high",
-  "safety": "safe",
-  "comparables": 5,
-  "fallback": "global",
-  "model": "catboost-v3.2"
-}
-```
+### API Warnings Section
+When `warnings[]` is non-empty in the API response, a separate amber-accented
+"API Warnings" section is rendered below Report Notes. Handles string items,
+object items (`message`/`msg`/`text` keys), and raw JSON fallback.
 
-### Loading state
-Updated to match dark theme:
-- Blue gradient header with "AI Estimate" badge
-- Dark shimmer skeleton bars (`#1f2937 → #374151`)
-
-### Error card
-Updated to match dark theme:
-- Red gradient header (same structure as success card)
-- Error text in `#fca5a5` (red-300)
-- Copy payload button uses new `autopluto-footer-btn--secondary` style
+### Calibration Version Badge
+If `calibration_version` is present in the response, a purple-tinted badge
+is shown next to the model version in the header.
 
 ---
 
-## 3. CSS Classes Added
+## Styling Changes
+
+### Card Width
+`400px` → `460px` for improved readability of the wider layout.
+
+### Popover Positioning
+`POPOVER_W` constant updated to match (460) so off-screen clamping stays correct.
+
+### Recommended Max Bid
+Font size: `18px` → `22px`. This is the most decision-critical number and now
+receives the strongest visual emphasis.
+
+### Decision Banner Title
+Font size: `12px` → `13px`, weight `700` → `800` for more immediate readability.
+
+### Badge Pills
+All `confidence_level`, `bid_safety_level`, `comparable_quality`, `market_match_level`
+values now have underscores replaced with spaces before display.
+
+Comparable count badge is now `gray` when 0 (was always `blue`).
+
+`comparable_quality` badge color:
+- `good` / `high` → green
+- `unreliable` / `low` → red
+- anything else → yellow
+
+### Header Identity Row
+`cityAuction`, `sellerName`, and `trim` are now shown as small `autopluto-identity-tag`
+spans below VIN / mileage in the card header. Previously these were omitted from the popup.
+
+### Report Notes → Structured Sections
+`autopluto-report-notes` HTML replaced by `autopluto-report-section` pattern with a
+`autopluto-section-title` header and `autopluto-report-list` bullet list.
+
+The `reason` field is now consumed as an **array** (from `_raw.reason`) rather than the
+pre-joined string from `normaliseResponse()`, so each reason appears on its own line.
+
+---
+
+## New CSS Classes
+
+All classes use the `autopluto-` prefix.
 
 | Class | Purpose |
 |-------|---------|
-| `autopluto-badge-ai` | "AI Estimate" frosted pill in header |
-| `autopluto-badge-model` | Model version pill in header |
-| `autopluto-header-top` | Flex row: title group + close button |
-| `autopluto-header-title-group` | Flex column: title + badges |
-| `autopluto-header-badges` | Badge pill row in header |
-| `autopluto-header-meta` | VIN + mileage row under header title |
-| `autopluto-card-vin` | Monospace VIN line in header |
-| `autopluto-mileage-tag` | Mileage display in header |
-| `autopluto-card-header--error` | Red gradient header for errors |
-| `autopluto-price-grid` | Auto-fit grid for price cards |
-| `autopluto-price-card` | Individual price card |
-| `autopluto-price-card--main` | Emphasized green Rec. Max Bid card |
-| `autopluto-price-card--market` | Blue Est. Market Price card |
-| `autopluto-price-card--current` | Gray Current Bid card |
-| `autopluto-price-card-label` | Label inside price card |
-| `autopluto-price-card-value` | Number inside price card |
-| `autopluto-decision-banner` | Decision result banner |
-| `autopluto-decision-banner--good/caution/danger/neutral` | Color variants |
-| `autopluto-decision-icon` | Emoji icon in decision banner |
-| `autopluto-decision-title` | Main text in decision banner |
-| `autopluto-decision-subtitle` | Sub-text in decision banner |
-| `autopluto-warning-banner` | Yellow inline warning message |
-| `autopluto-badges-section` | Flex wrapper for badge pills |
-| `autopluto-badge-item` | Individual badge pill |
-| `autopluto-badge-item--green/yellow/red/blue/gray` | Color variants |
-| `autopluto-badge-item-label` | Small uppercase label in pill |
-| `autopluto-badge-item-value` | Value text in pill |
-| `autopluto-data-quality` | Input coverage section |
-| `autopluto-data-quality-title` | Section title |
-| `autopluto-data-quality-grid` | 4-column field grid |
-| `autopluto-data-field` | Individual field row (dot + name) |
-| `autopluto-data-field--ok/miss` | Present / missing states |
-| `autopluto-data-field-dot` | Colored status dot |
-| `autopluto-data-missing-note` | "Missing: X, Y" note text |
-| `autopluto-report-notes` | Report notes panel |
-| `autopluto-report-notes-title` | Section title |
-| `autopluto-report-notes-list` | Bullet list of notes |
-| `autopluto-debug-panel` | Collapsible debug container |
-| `autopluto-debug-toggle` | Toggle button |
-| `autopluto-debug-arrow` | ▶/▼ arrow in toggle |
-| `autopluto-debug-content` | Collapsible content area |
-| `autopluto-debug-open` | JS-toggled open state |
-| `autopluto-footer-btn` | Base footer button style |
-| `autopluto-footer-btn--primary` | Blue primary button |
-| `autopluto-footer-btn--secondary` | Gray secondary button |
-| `autopluto-footer-btn--ghost` | Transparent ghost button |
-| `autopluto-copy-result-btn` | Copy result button |
+| `autopluto-secondary-prices` | 4-col secondary price sub-grid wrapper |
+| `autopluto-secondary-metric` | Individual cell in secondary grid |
+| `autopluto-secondary-label` | Dim uppercase label in secondary cell |
+| `autopluto-secondary-value` | Value in secondary cell |
+| `autopluto-range-card` | Expected market range row |
+| `autopluto-range-label` | "Expected Market Range" label |
+| `autopluto-range-value` | `$X — $Y` value |
+| `autopluto-manual-review-box` | Amber warning box for manual review |
+| `autopluto-manual-review-icon` | ⚠ icon inside review box |
+| `autopluto-manual-review-title` | Title inside review box |
+| `autopluto-manual-review-sub` | Subtitle inside review box |
+| `autopluto-report-section` | Report section container (blue left border) |
+| `autopluto-report-section--warn` | Variant with amber left border |
+| `autopluto-section-title` | Section header label |
+| `autopluto-section-title--warn` | Amber variant of section title |
+| `autopluto-report-list` | Bullet list inside a report section |
+| `autopluto-report-list--warn` | Amber bullet variant |
+| `autopluto-report-list--muted` | Muted bullet variant (adjustment reasons) |
+| `autopluto-identity-tag` | Small tag for city / seller / trim in header |
+| `autopluto-vin-missing` | Amber color for missing VIN label |
+| `autopluto-badge-calib` | Purple-tinted calibration version badge |
+| `autopluto-adjust-grid` | 2-col grid inside adjustment accordion |
+| `autopluto-adjust-item` | Single item in adjustment grid |
+| `autopluto-adjust-label` | Dim label in adjustment grid |
+| `autopluto-adjust-value` | Value in adjustment grid |
+| `autopluto-adjust-reasons-title` | Title above risk reasons list |
 
 ---
 
-## 4. Before / After Notes
+## Fields Added from API Response
 
-| Aspect | v4 (before) | v5 (after) |
-|--------|-------------|------------|
-| Theme | White / Google Material | Dark (`#111827`) professional |
-| Card width | 320 px | 400 px |
-| Price numbers | 14 px | 15–18 px, colored by role |
-| Margin display | Small badge row | Full-width colored decision banner |
-| Reason text | One mashed italic sentence | Structured bullet list |
-| Data quality | Not shown | 8-field input coverage grid |
-| Debug panel | External modal (debug mode only) | Inline collapsible (always available) |
-| Footer actions | Single "Refresh" text link | Refresh + Copy Result buttons |
-| Calibration note | Always "not available" | Accurate: shows version or "not available" |
-| Error card theme | White card, red border | Dark card, red gradient header |
-| Loading state | White shimmer bars | Dark shimmer bars |
+Fields now surfaced in the UI that were previously unused:
 
----
+| Field | Where shown |
+|-------|-------------|
+| `model_price` | Secondary prices sub-grid |
+| `calibrated_model_price` | Secondary prices sub-grid |
+| `adjusted_price` | Secondary prices sub-grid |
+| `comparable_median_price` | Secondary prices sub-grid (null → `—`) |
+| `expected_range_low` | Expected Market Range row |
+| `expected_range_high` | Expected Market Range row |
+| `risk_adjustment_pct` | Adjustment Details accordion |
+| `effective_bid_discount_pct` | Adjustment Details accordion |
+| `risk_adjustment_reasons` | Adjustment Details accordion |
+| `blend_reason` | Adjustment Details accordion |
+| `model_blend_weight` | Adjustment Details accordion |
+| `manual_review_required` | Manual review warning box + badge pill |
+| `comparable_quality` | Badge pill (color-coded) |
+| `warnings` | API Warnings section (separate from Report Notes) |
+| `calibration_version` | Purple badge in card header |
+| `reason` (as array) | Report Notes bullet list (one item per line) |
 
-## 5. Decision Logic
-
-```
-margin = recommended_max_bid − current_auction_price
-
-margin > 1000     → Green  "Good room to bid"
-0 ≤ margin ≤ 1000 → Yellow "Close to limit"
-margin < 0        → Red    "Above recommended max"
-no current price  → Neutral "No current bid price"
-```
+The `Copy Result` clipboard output now also includes:
+`expected_range_low`, `expected_range_high`, `comparable_quality`,
+`manual_review_required`.
 
 ---
 
-## 6. Data Quality Logic
+## Graceful Handling of Null / Missing Fields
 
-Fields checked: `vin`, `mileage`, `cityAuction`, `sellerName`, `trim`, `drivetrain`, `fuelType`, `engine`
-
-- Present (`!= null && != ''`) → green dot
-- Missing → gray dot
-- Any missing fields listed in "Missing: X, Y, Z" note
-
----
-
-## 7. Calibration Note Logic
-
-```javascript
-if (result.calibration_version) {
-  // API returned e.g. "v15.4a"
-  notes.push(`Calibration applied: ${result.calibration_version}`);
-} else {
-  // API returned null / field missing
-  notes.push('Calibration artifact not available');
-}
-```
-
-`normaliseResponse` now reads `raw.calibration_version ?? null` instead of hardcoding `null`.
+| Condition | Behaviour |
+|-----------|-----------|
+| `comparable_median_price = null` | Shows `—` in secondary prices |
+| `expected_range_low/high = null` | Entire range row is hidden |
+| `calibration_version` absent | No calibration badge shown |
+| `manual_review_required = false` | No review warning box shown |
+| `warnings = []` or null | API Warnings section is omitted |
+| `comparable_count = 0` | Badge shown in gray (not blue) |
+| `risk_adjustment_reasons = []` | Risk reasons list omitted from accordion |
+| No adjustment fields present | Adjustment Details accordion omitted entirely |
+| `sellerName / cityAuction / trim = null` | Identity tag omitted from header |
 
 ---
 
-## 8. Tests to Perform
+## Before / After Notes
 
-| Test case | Expected |
-|-----------|----------|
-| Normal vehicle (good margin) | Green decision banner, all price cards |
-| High price vehicle (above max bid) | Red decision banner |
-| Vehicle near limit | Yellow decision banner |
-| Missing VIN vehicle | Header VIN shows "not detected" warning, data quality flags VIN as missing |
-| High mileage vehicle | Mileage shown in header meta |
-| Sold vehicle | Shows current price card; decision calculated |
-| IF (if-present) vehicle | Shows correctly regardless of IF status |
-| API returns calibration_version | "Calibration applied: vX.X" shown in notes |
-| API returns null calibration | "Calibration artifact not available" shown |
-| Debug toggle | Opens/closes; repositions popover |
-| Copy Result button | Copies JSON summary; button changes to "✓ Copied" |
-| Refresh button | Forces new API call |
-| Close button | Removes popover cleanly |
-| Multiple row clicks | No duplicate popovers (closeActivePopover guard) |
-| Near-bottom viewport | Popover shifts up (positionPopover clamp) |
-| Near-right viewport | Popover shifts left |
+**Before (v7):**
+- Single dense card, limited hierarchy
+- No expected range visible
+- `reason` shown as one joined sentence in a flat report notes block
+- No manual review warning
+- No adjustment details
+- No secondary price breakdown
+- Badge pills missing `comparable_quality`, `manual_review_required`
+- VIN / mileage only in header meta; city/seller/trim not shown
+- Popover width: 400px
+
+**After (v8):**
+- Clear sectioned report card layout with labelled areas
+- Expected market range displayed prominently as `$X — $Y`
+- Reason items shown as individual bullets in Report Notes
+- API warnings shown in a separate amber-accented Warnings section
+- Amber "Manual Review Required" box when `manual_review_required = true`
+- Collapsible Adjustment Details panel with all risk/blend metadata
+- Secondary prices sub-grid below main cards (model, calibrated, adjusted, comp median)
+- More badge pills: quality, manual review status
+- City, seller, trim shown as identity tags in header
+- Rec. Max Bid value font size increased to 22px (primary decision number)
+- Popover width: 460px
 
 ---
 
-## 9. Acceptance Criteria
+## Files Changed
 
-- [x] Popup looks like a professional estimate report, not a basic tooltip
-- [x] Recommended Max Bid is visually emphasized (largest number, green)
-- [x] Margin decision is immediately understandable (colored banner)
-- [x] Confidence/safety/fallback/comparables are easy to read (pill badges)
-- [x] Missing data is clearly shown (input coverage grid)
-- [x] Debug details available but hidden by default (collapsible panel)
-- [x] No build system added — plain CSS + vanilla JS
-- [x] Extension still loads directly in Chrome
-- [x] Calibration note is accurate (reads from API response)
-- [x] Reason text is structured bullet list, not one long string
+| File | Changes |
+|------|---------|
+| `content.js` | `POPOVER_W` 400→460; `buildReportNotes()` redesigned; `showResultCard()` redesigned; `showLoadingPopover()` badge label updated |
+| `styles.css` | Card width 400→460px; price-card--main value 18→22px; decision-title 12→13px/700→800; 26 new CSS classes added |
+| `reports/openlane_estimator_extension_ui_update.md` | This file |
+
+No other files changed. No build step added. Extension loads directly as unpacked Chrome extension.

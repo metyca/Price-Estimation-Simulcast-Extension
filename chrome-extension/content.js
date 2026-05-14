@@ -579,7 +579,7 @@
   }
 
   function positionPopover(popover, rowEl) {
-    const POPOVER_W = 400;
+    const POPOVER_W = 460;
     const rect      = rowEl.getBoundingClientRect();
 
     let left = rect.right + 12;
@@ -704,37 +704,62 @@
   }
 
   function buildReportNotes(result) {
+    const raw = result._raw || {};
+
+    // Use the original reason array; fall back to splitting the joined string
+    const reasonArr = Array.isArray(raw.reason)
+      ? raw.reason
+      : (raw.reason ? raw.reason.split(' · ') : []);
+
+    const apiWarnings = Array.isArray(raw.warnings) ? raw.warnings : [];
+
+    // Build notes from structured metadata + overflow reason items
     const notes = [];
 
     if (result.comparable_count != null) {
       notes.push(`${result.comparable_count} comparable vehicle${result.comparable_count !== 1 ? 's' : ''} found`);
     }
     if (result.market_fallback_level) {
-      notes.push(`Market fallback used: ${result.market_fallback_level}`);
+      notes.push(`Market fallback: ${result.market_fallback_level}`);
     }
     if (result.calibration_version) {
       notes.push(`Calibration applied: ${result.calibration_version}`);
     } else {
       notes.push('Calibration artifact not available');
     }
-    if (result.model_version) {
-      notes.push(`Model version: ${result.model_version}`);
-    }
+
+    const skip = ['comparable', 'fallback', 'calibration', 'carfax', 'condition', 'no carfax'];
+    reasonArr
+      .map((s) => s.trim())
+      .filter((s) => s && !skip.some((k) => s.toLowerCase().includes(k)))
+      .forEach((s) => notes.push(s));
+
     notes.push('No CARFAX / condition data included');
 
-    // Include any extra reason parts not already covered above
-    if (result.reason) {
-      const skip = ['comparable', 'fallback', 'calibration', 'carfax', 'condition', 'model version', 'no carfax'];
-      result.reason.split(' · ')
-        .map((s) => s.trim())
-        .filter((s) => s && !skip.some((k) => s.toLowerCase().includes(k)))
-        .forEach((s) => notes.push(s));
+    let html = `
+      <div class="autopluto-report-section">
+        <div class="autopluto-section-title">Report Notes</div>
+        <ul class="autopluto-report-list">
+          ${notes.map((n) => `<li>${esc(n)}</li>`).join('')}
+        </ul>
+      </div>`;
+
+    if (apiWarnings.length > 0) {
+      const warnItems = apiWarnings.map((w) => {
+        const text = typeof w === 'string' ? w
+          : (w && typeof w === 'object' ? (w.message || w.msg || w.text || JSON.stringify(w)) : String(w));
+        return `<li>${esc(text)}</li>`;
+      }).join('');
+      html += `
+        <div class="autopluto-report-section autopluto-report-section--warn">
+          <div class="autopluto-section-title autopluto-section-title--warn">API Warnings</div>
+          <ul class="autopluto-report-list autopluto-report-list--warn">
+            ${warnItems}
+          </ul>
+        </div>`;
     }
 
-    return `<div class="autopluto-report-notes">
-      <div class="autopluto-report-notes-title">Report Notes</div>
-      <ul class="autopluto-report-notes-list">${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
-    </div>`;
+    return html;
   }
 
   function showLoadingPopover(rowEl, vehicleTitle) {
@@ -749,7 +774,7 @@
           <div class="autopluto-header-title-group">
             <div class="autopluto-card-title">${esc(vehicleTitle || 'Auction Price Estimate')}</div>
             <div class="autopluto-header-badges">
-              <span class="autopluto-badge-ai">AI Estimate</span>
+              <span class="autopluto-badge-ai">Estimate Report</span>
             </div>
           </div>
           <button class="autopluto-card-close" title="Close">✕</button>
@@ -778,6 +803,7 @@
   function showResultCard(rowEl, result, vehicleData) {
     closeActivePopover();
 
+    const raw             = result._raw || {};
     const emp             = result.estimated_market_price;
     const rmb             = result.recommended_max_bid;
     const currentPrice    = vehicleData.metadata?.currentAuctionPrice;
@@ -785,21 +811,98 @@
     const margin          = hasCurrentPrice && rmb != null ? rmb - currentPrice : null;
     const bidGtEmp        = emp != null && rmb != null && rmb > emp;
 
+    // ── Extended raw fields ──────────────────────────────────────
+    const modelPrice      = raw.model_price              ?? null;
+    const calibratedPrice = raw.calibrated_model_price   ?? null;
+    const adjustedPrice   = raw.adjusted_price           ?? null;
+    const compMedian      = raw.comparable_median_price  ?? null;
+    const rangeLow        = raw.expected_range_low       ?? null;
+    const rangeHigh       = raw.expected_range_high      ?? null;
+    const riskPct         = raw.risk_adjustment_pct      ?? null;
+    const discountPct     = raw.effective_bid_discount_pct ?? null;
+    const riskReasons     = Array.isArray(raw.risk_adjustment_reasons) ? raw.risk_adjustment_reasons : [];
+    const blendReason     = raw.blend_reason             ?? null;
+    const blendWeight     = raw.model_blend_weight       ?? null;
+    const manualReview    = raw.manual_review_required   ?? false;
+    const compQuality     = raw.comparable_quality       ?? null;
+
     const card = document.createElement('div');
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
 
-    // ── Price grid ──────────────────────────────────────────────
+    // ── Current price card ───────────────────────────────────────
     const currentPriceCard = hasCurrentPrice ? `
       <div class="autopluto-price-card autopluto-price-card--current">
         <div class="autopluto-price-card-label">Current Bid</div>
         <div class="autopluto-price-card-value">${fmt(currentPrice)}</div>
       </div>` : '';
 
-    // ── Decision banner ─────────────────────────────────────────
+    // ── Secondary prices sub-grid ────────────────────────────────
+    const secondaryPrices = `
+      <div class="autopluto-secondary-prices">
+        <div class="autopluto-secondary-metric">
+          <span class="autopluto-secondary-label">Model Price</span>
+          <span class="autopluto-secondary-value">${modelPrice != null ? fmt(modelPrice) : '—'}</span>
+        </div>
+        <div class="autopluto-secondary-metric">
+          <span class="autopluto-secondary-label">Calibrated</span>
+          <span class="autopluto-secondary-value">${calibratedPrice != null ? fmt(calibratedPrice) : '—'}</span>
+        </div>
+        <div class="autopluto-secondary-metric">
+          <span class="autopluto-secondary-label">Adjusted</span>
+          <span class="autopluto-secondary-value">${adjustedPrice != null ? fmt(adjustedPrice) : '—'}</span>
+        </div>
+        <div class="autopluto-secondary-metric">
+          <span class="autopluto-secondary-label">Comp Median</span>
+          <span class="autopluto-secondary-value">${compMedian != null ? fmt(compMedian) : '—'}</span>
+        </div>
+      </div>`;
+
+    // ── Decision banner ──────────────────────────────────────────
     const decisionHtml = buildDecisionBanner(margin, hasCurrentPrice && rmb != null);
 
-    // ── Warnings ────────────────────────────────────────────────
+    // ── Expected range ───────────────────────────────────────────
+    const rangeHtml = (rangeLow != null || rangeHigh != null) ? `
+      <div class="autopluto-range-card">
+        <span class="autopluto-range-label">Expected Market Range</span>
+        <span class="autopluto-range-value">${rangeLow != null ? fmt(rangeLow) : '?'} — ${rangeHigh != null ? fmt(rangeHigh) : '?'}</span>
+      </div>` : '';
+
+    // ── Badge pills ──────────────────────────────────────────────
+    let badgesHtml = '';
+    if (result.confidence_level) {
+      badgesHtml += buildBadgeItem('Confidence', result.confidence_level.replace(/_/g, ' '), getConfidenceColor(result.confidence_level));
+    }
+    if (result.bid_safety_level) {
+      badgesHtml += buildBadgeItem('Safety', result.bid_safety_level.replace(/_/g, ' '), getSafetyColor(result.bid_safety_level));
+    }
+    if (result.comparable_count != null) {
+      badgesHtml += buildBadgeItem('Comps', String(result.comparable_count), result.comparable_count > 0 ? 'blue' : 'gray');
+    }
+    if (compQuality) {
+      const qc = compQuality.toLowerCase();
+      const qColor = (qc === 'good' || qc === 'high') ? 'green'
+        : (qc === 'unreliable' || qc === 'low') ? 'red' : 'yellow';
+      badgesHtml += buildBadgeItem('Quality', compQuality.replace(/_/g, ' '), qColor);
+    }
+    if (result.market_fallback_level) {
+      badgesHtml += buildBadgeItem('Fallback', result.market_fallback_level.replace(/_/g, ' '), getFallbackColor(result.market_fallback_level));
+    }
+    if (manualReview) {
+      badgesHtml += buildBadgeItem('Review', 'Required', 'red');
+    }
+
+    // ── Manual review warning box ────────────────────────────────
+    const manualReviewHtml = manualReview ? `
+      <div class="autopluto-manual-review-box">
+        <span class="autopluto-manual-review-icon">⚠</span>
+        <div>
+          <div class="autopluto-manual-review-title">Manual Review Required</div>
+          <div class="autopluto-manual-review-sub">Do not rely on this estimate without additional review.</div>
+        </div>
+      </div>` : '';
+
+    // ── General warnings ─────────────────────────────────────────
     let warningHtml = '';
     if (bidGtEmp) {
       warningHtml += `<div class="autopluto-warning-banner">⚠ Recommended max bid exceeds estimated market price. Review before bidding.</div>`;
@@ -808,30 +911,51 @@
       warningHtml += `<div class="autopluto-warning-banner">⚠ VIN not detected — estimate may be less accurate.</div>`;
     }
 
-    // ── Badge pills ─────────────────────────────────────────────
-    let badgesHtml = '';
-    if (result.confidence_level) {
-      badgesHtml += buildBadgeItem('Confidence', result.confidence_level, getConfidenceColor(result.confidence_level));
-    }
-    if (result.bid_safety_level) {
-      badgesHtml += buildBadgeItem('Safety', result.bid_safety_level, getSafetyColor(result.bid_safety_level));
-    }
-    if (result.comparable_count != null) {
-      badgesHtml += buildBadgeItem('Comps', String(result.comparable_count), 'blue');
-    }
-    if (result.market_fallback_level) {
-      badgesHtml += buildBadgeItem('Fallback', result.market_fallback_level, getFallbackColor(result.market_fallback_level));
-    }
-
-    // ── Header model badge ──────────────────────────────────────
+    // ── Header badges ────────────────────────────────────────────
     const modelBadge = result.model_version
       ? `<span class="autopluto-badge-model">${esc(result.model_version)}</span>` : '';
+    const calibBadge = result.calibration_version
+      ? `<span class="autopluto-badge-calib">${esc(result.calibration_version)}</span>` : '';
 
-    // ── Collapsible debug panel ─────────────────────────────────
-    const debugPayload = JSON.stringify(
-      { vehicle: vehicleData, result: result._raw },
-      null, 2
-    );
+    // ── Vehicle identity tags ────────────────────────────────────
+    const cityTag   = vehicleData.cityAuction
+      ? `<span class="autopluto-identity-tag">📍 ${esc(vehicleData.cityAuction)}</span>` : '';
+    const sellerTag = vehicleData.sellerName
+      ? `<span class="autopluto-identity-tag">🏢 ${esc(vehicleData.sellerName)}</span>` : '';
+    const trimTag   = vehicleData.trim
+      ? `<span class="autopluto-identity-tag">✦ ${esc(vehicleData.trim)}</span>` : '';
+
+    // ── Adjustment details accordion ─────────────────────────────
+    const adjustItems = [];
+    if (riskPct     != null) adjustItems.push({ label: 'Risk Adjustment',    value: `${riskPct}%` });
+    if (discountPct != null) adjustItems.push({ label: 'Effective Discount',  value: `${discountPct}%` });
+    if (blendReason)         adjustItems.push({ label: 'Blend Reason',        value: blendReason.replace(/_/g, ' ') });
+    if (blendWeight != null) adjustItems.push({ label: 'Model Blend',         value: `${(blendWeight * 100).toFixed(0)}%` });
+
+    const adjustHtml = (adjustItems.length > 0 || riskReasons.length > 0) ? `
+      <div class="autopluto-debug-panel">
+        <button class="autopluto-debug-toggle">
+          <span>Adjustment Details</span>
+          <span class="autopluto-debug-arrow">▶</span>
+        </button>
+        <div class="autopluto-debug-content">
+          <div class="autopluto-adjust-grid">
+            ${adjustItems.map((i) => `
+              <div class="autopluto-adjust-item">
+                <span class="autopluto-adjust-label">${esc(i.label)}</span>
+                <span class="autopluto-adjust-value">${esc(i.value)}</span>
+              </div>`).join('')}
+          </div>
+          ${riskReasons.length > 0 ? `
+            <div class="autopluto-adjust-reasons-title">Risk Adjustment Reasons</div>
+            <ul class="autopluto-report-list autopluto-report-list--muted">
+              ${riskReasons.map((r) => `<li>${esc(typeof r === 'string' ? r : JSON.stringify(r))}</li>`).join('')}
+            </ul>` : ''}
+        </div>
+      </div>` : '';
+
+    // ── Debug payload ────────────────────────────────────────────
+    const debugPayload = JSON.stringify({ vehicle: vehicleData, result: result._raw }, null, 2);
 
     card.innerHTML = `
       <div class="autopluto-card-header">
@@ -839,15 +963,18 @@
           <div class="autopluto-header-title-group">
             <div class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</div>
             <div class="autopluto-header-badges">
-              <span class="autopluto-badge-ai">AI Estimate</span>
-              ${modelBadge}
+              <span class="autopluto-badge-ai">Estimate Report</span>
+              ${modelBadge}${calibBadge}
             </div>
           </div>
           <button class="autopluto-card-close" title="Close">✕</button>
         </div>
         <div class="autopluto-header-meta">
-          ${vehicleData.vin ? `<span class="autopluto-card-vin">VIN: ${esc(vehicleData.vin)}</span>` : '<span class="autopluto-card-vin" style="color:rgba(255,180,50,.7)">VIN: not detected</span>'}
+          ${vehicleData.vin
+            ? `<span class="autopluto-card-vin">VIN: ${esc(vehicleData.vin)}</span>`
+            : '<span class="autopluto-card-vin autopluto-vin-missing">VIN: not detected</span>'}
           ${vehicleData.mileage ? `<span class="autopluto-mileage-tag">◎ ${fmtNum(vehicleData.mileage)}</span>` : ''}
+          ${cityTag}${sellerTag}${trimTag}
         </div>
       </div>
 
@@ -865,13 +992,23 @@
           ${currentPriceCard}
         </div>
 
+        ${secondaryPrices}
+
         ${decisionHtml}
-        ${warningHtml}
+
+        ${rangeHtml}
 
         ${badgesHtml ? `<div class="autopluto-badges-section">${badgesHtml}</div>` : ''}
 
-        ${buildDataQuality(vehicleData)}
+        ${manualReviewHtml}
+
+        ${warningHtml}
+
         ${buildReportNotes(result)}
+
+        ${adjustHtml}
+
+        ${buildDataQuality(vehicleData)}
 
         <div class="autopluto-debug-panel">
           <button class="autopluto-debug-toggle">
@@ -891,40 +1028,48 @@
       </div>
     `;
 
-    // Close
+    // ── Close ─────────────────────────────────────────────────────
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
       e.stopPropagation();
       closeActivePopover();
     });
 
-    // Debug toggle
-    const debugToggle  = card.querySelector('.autopluto-debug-toggle');
-    const debugContent = card.querySelector('.autopluto-debug-content');
-    const debugArrow   = card.querySelector('.autopluto-debug-arrow');
-    debugToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const open = debugContent.classList.toggle('autopluto-debug-open');
-      if (debugArrow) debugArrow.textContent = open ? '▼' : '▶';
-      positionPopover(card, rowEl);
+    // ── All accordion toggles (debug + adjustment) ────────────────
+    card.querySelectorAll('.autopluto-debug-toggle').forEach((toggle) => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel   = toggle.closest('.autopluto-debug-panel');
+        const content = panel && panel.querySelector('.autopluto-debug-content');
+        const arrow   = panel && panel.querySelector('.autopluto-debug-arrow');
+        if (content) {
+          const open = content.classList.toggle('autopluto-debug-open');
+          if (arrow) arrow.textContent = open ? '▼' : '▶';
+          positionPopover(card, rowEl);
+        }
+      });
     });
 
-    // Copy result
+    // ── Copy result ───────────────────────────────────────────────
     card.querySelector('.autopluto-copy-result-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       const btn = e.currentTarget;
       const summary = {
-        vehicle:               vehicleData.titleFull      || null,
-        vin:                   vehicleData.vin             || null,
-        mileage_km:            vehicleData.mileage         || null,
+        vehicle:                vehicleData.titleFull    || null,
+        vin:                    vehicleData.vin           || null,
+        mileage_km:             vehicleData.mileage       || null,
         estimated_market_price: emp,
-        recommended_max_bid:   rmb,
-        current_price:         currentPrice               || null,
-        margin_to_max_bid:     margin,
-        confidence:            result.confidence_level    || null,
-        safety:                result.bid_safety_level    || null,
-        comparables:           result.comparable_count,
-        fallback:              result.market_fallback_level || null,
-        model:                 result.model_version       || null,
+        recommended_max_bid:    rmb,
+        current_price:          currentPrice             || null,
+        margin_to_max_bid:      margin,
+        expected_range_low:     rangeLow,
+        expected_range_high:    rangeHigh,
+        confidence:             result.confidence_level  || null,
+        safety:                 result.bid_safety_level  || null,
+        comparables:            result.comparable_count,
+        comparable_quality:     compQuality,
+        fallback:               result.market_fallback_level || null,
+        manual_review_required: manualReview,
+        model:                  result.model_version     || null,
       };
       navigator.clipboard.writeText(JSON.stringify(summary, null, 2)).then(() => {
         btn.textContent = '✓ Copied';
