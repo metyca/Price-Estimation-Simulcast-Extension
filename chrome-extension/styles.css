@@ -1122,7 +1122,7 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 /* Dim variant for "Quality" label (secondary) */
 .autopluto-emp-conf-key--dim {
-  color: #4b6a8e !important;
+  color: #93a8c4 !important;
 }
 
 .autopluto-emp-conf-meter {
@@ -1233,7 +1233,7 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 .autopluto-bid-mini-value {
   font-size: 17px !important;
   font-weight: 800 !important;
-  color: #d1d5db !important;
+  color: #f59e0b !important;
   letter-spacing: -0.5px !important;
   line-height: 1.1 !important;
   white-space: nowrap !important;
@@ -1437,15 +1437,14 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   box-shadow: 0 0 0 2px rgba(96,165,250,0.35), 0 0 10px rgba(96,165,250,0.4) !important;
 }
 
-/* EMP marker — positioned dynamically via inline style left:XX% */
+/* EMP marker — size matches the dot exactly so translate(-50%,-50%) centers the dot on the track */
 .autopluto-range-emp-marker {
   position: absolute !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
   z-index: 3 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
+  width: 18px !important;
+  height: 18px !important;
   pointer-events: none !important;
 }
 
@@ -1456,18 +1455,54 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   background: radial-gradient(circle at 38% 36%, #93c5fd, #3b82f6) !important;
   border: 2.5px solid #070e1c !important;
   box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 0 16px rgba(59,130,246,0.7) !important;
-  flex-shrink: 0 !important;
 }
 
-/* EMP label sits BELOW the track (via the padding-bottom on the wrap) */
+/* EMP label — absolutely below the dot, does not affect marker height */
 .autopluto-range-emp-label {
   position: absolute !important;
-  top: 12px !important; /* below the dot */
+  top: calc(100% + 4px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   font-size: 8px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   color: #60a5fa !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* Current Bid marker — size matches the dot exactly */
+.autopluto-range-bid-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 4 !important;
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-bid-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 38% 36%, #fde68a, #f59e0b) !important;
+  border: 2px solid #070e1c !important;
+  box-shadow: 0 0 0 2.5px rgba(245,158,11,0.35), 0 0 12px rgba(245,158,11,0.6) !important;
+}
+
+/* BID label — absolutely below the dot, does not affect marker height */
+.autopluto-range-bid-label {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #f59e0b !important;
   white-space: nowrap !important;
   line-height: 1 !important;
 }

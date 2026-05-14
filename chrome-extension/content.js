@@ -1527,10 +1527,23 @@
       empPct = Math.min(96, Math.max(4, ((emp - rangeLow) / (rangeHigh - rangeLow)) * 100));
     }
 
+    // Calculate where Current Bid sits on the track (0–100%)
+    let bidPct = null;
+    if (currentPrice != null && rangeLow != null && rangeHigh != null && rangeHigh > rangeLow) {
+      bidPct = Math.min(96, Math.max(4, ((currentPrice - rangeLow) / (rangeHigh - rangeLow)) * 100));
+    }
+
     const empMarkerHtml = empPct != null
       ? `<div class="autopluto-range-emp-marker" style="left:${empPct.toFixed(1)}%">
            <div class="autopluto-range-emp-dot"></div>
            <div class="autopluto-range-emp-label">EMP</div>
+         </div>`
+      : '';
+
+    const bidMarkerHtml = bidPct != null
+      ? `<div class="autopluto-range-bid-marker" style="left:${bidPct.toFixed(1)}%">
+           <div class="autopluto-range-bid-dot"></div>
+           <div class="autopluto-range-bid-label">BID</div>
          </div>`
       : '';
 
@@ -1560,6 +1573,7 @@
             <div class="autopluto-range-track-low-cap"></div>
             <div class="autopluto-range-track-high-cap"></div>
             ${empMarkerHtml}
+            ${bidMarkerHtml}
           </div>
         </div>
       </div>`;
