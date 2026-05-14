@@ -471,6 +471,18 @@
       .replace(/"/g, '&quot;');
   }
 
+  function injectGeistFont() {
+    const id = 'autopluto-geist-font';
+    if (document.getElementById(id)) return;
+    try {
+      const link = document.createElement('link');
+      link.id   = id;
+      link.rel  = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap';
+      (document.head || document.documentElement).appendChild(link);
+    } catch (_e) { /* font injection blocked by page CSP — fallback font stack is used */ }
+  }
+
   function getBadgeInfo(margin, hasCurrentPrice) {
     if (!hasCurrentPrice) return { color: 'gray', label: 'No current price', cls: 'autopluto-badge-gray' };
     if (margin > 1000)    return { color: 'green',  label: 'Below max bid',   cls: 'autopluto-badge-green' };
@@ -579,7 +591,7 @@
   }
 
   function positionPopover(popover, rowEl) {
-    const POPOVER_W = 460;
+    const POPOVER_W = 500;
     const rect      = rowEl.getBoundingClientRect();
 
     let left = rect.right + 12;
@@ -604,36 +616,48 @@
   function buildDecisionBanner(margin, hasCurrentPrice) {
     if (!hasCurrentPrice || margin === null) {
       return `<div class="autopluto-decision-banner autopluto-decision-banner--neutral">
-        <span class="autopluto-decision-icon">💰</span>
-        <div>
-          <div class="autopluto-decision-title">No current bid price</div>
-          <div class="autopluto-decision-subtitle">Cannot calculate margin to max bid</div>
+        <div class="autopluto-decision-left">
+          <div class="autopluto-decision-pill autopluto-decision-pill--neutral">No Current Bid</div>
+          <div class="autopluto-decision-sub">Cannot calculate margin — no active bid price</div>
+        </div>
+        <div class="autopluto-decision-right">
+          <div class="autopluto-decision-amount autopluto-decision-amount--neutral">—</div>
+          <div class="autopluto-decision-amount-label">bid margin</div>
         </div>
       </div>`;
     }
     if (margin > 1000) {
       return `<div class="autopluto-decision-banner autopluto-decision-banner--good">
-        <span class="autopluto-decision-icon">✅</span>
-        <div>
-          <div class="autopluto-decision-title">Good room to bid</div>
-          <div class="autopluto-decision-subtitle">${fmt(margin)} below recommended max bid</div>
+        <div class="autopluto-decision-left">
+          <div class="autopluto-decision-pill autopluto-decision-pill--good">Good Room to Bid</div>
+          <div class="autopluto-decision-sub">Current bid is comfortably below your limit</div>
+        </div>
+        <div class="autopluto-decision-right">
+          <div class="autopluto-decision-amount autopluto-decision-amount--good">${fmt(margin)}</div>
+          <div class="autopluto-decision-amount-label">below max bid</div>
         </div>
       </div>`;
     }
     if (margin >= 0) {
       return `<div class="autopluto-decision-banner autopluto-decision-banner--caution">
-        <span class="autopluto-decision-icon">⚠️</span>
-        <div>
-          <div class="autopluto-decision-title">Close to limit</div>
-          <div class="autopluto-decision-subtitle">Only ${fmt(margin)} below max bid</div>
+        <div class="autopluto-decision-left">
+          <div class="autopluto-decision-pill autopluto-decision-pill--caution">Close to Limit</div>
+          <div class="autopluto-decision-sub">Approaching your recommended maximum bid</div>
+        </div>
+        <div class="autopluto-decision-right">
+          <div class="autopluto-decision-amount autopluto-decision-amount--caution">${fmt(margin)}</div>
+          <div class="autopluto-decision-amount-label">below max bid</div>
         </div>
       </div>`;
     }
     return `<div class="autopluto-decision-banner autopluto-decision-banner--danger">
-      <span class="autopluto-decision-icon">🚫</span>
-      <div>
-        <div class="autopluto-decision-title">Above recommended max</div>
-        <div class="autopluto-decision-subtitle">${fmt(Math.abs(margin))} over max bid</div>
+      <div class="autopluto-decision-left">
+        <div class="autopluto-decision-pill autopluto-decision-pill--danger">Above Recommended Max</div>
+        <div class="autopluto-decision-sub">Current bid exceeds your limit — consider walking away</div>
+      </div>
+      <div class="autopluto-decision-right">
+        <div class="autopluto-decision-amount autopluto-decision-amount--danger">${fmt(Math.abs(margin))}</div>
+        <div class="autopluto-decision-amount-label">over max bid</div>
       </div>
     </div>`;
   }
@@ -696,32 +720,20 @@
       ? `<div class="autopluto-data-missing-note">Missing: ${esc(missing.join(', '))}</div>`
       : '';
 
-    return `<div class="autopluto-data-quality">
-      <div class="autopluto-data-quality-title">Input Coverage</div>
-      <div class="autopluto-data-quality-grid">${fieldHtml}</div>
-      ${missingNote}
-    </div>`;
+    return `<div class="autopluto-data-quality-grid">${fieldHtml}</div>${missingNote}`;
   }
 
-  function buildReportNotes(result) {
+  function normalizeReasonList(result) {
     const raw = result._raw || {};
-
-    // Use the original reason array; fall back to splitting the joined string
     const reasonArr = Array.isArray(raw.reason)
       ? raw.reason
       : (raw.reason ? raw.reason.split(' · ') : []);
 
-    const apiWarnings = Array.isArray(raw.warnings) ? raw.warnings : [];
-
-    // Build notes from structured metadata + overflow reason items
     const notes = [];
-
     if (result.comparable_count != null) {
       notes.push(`${result.comparable_count} comparable vehicle${result.comparable_count !== 1 ? 's' : ''} found`);
     }
-    if (result.market_fallback_level) {
-      notes.push(`Market fallback: ${result.market_fallback_level}`);
-    }
+    if (result.market_fallback_level) notes.push(`Market fallback: ${result.market_fallback_level}`);
     if (result.calibration_version) {
       notes.push(`Calibration applied: ${result.calibration_version}`);
     } else {
@@ -735,31 +747,259 @@
       .forEach((s) => notes.push(s));
 
     notes.push('No CARFAX / condition data included');
+    return notes;
+  }
 
-    let html = `
-      <div class="autopluto-report-section">
-        <div class="autopluto-section-title">Report Notes</div>
-        <ul class="autopluto-report-list">
-          ${notes.map((n) => `<li>${esc(n)}</li>`).join('')}
-        </ul>
-      </div>`;
+  function normalizeWarningList(result) {
+    const raw = result._raw || {};
+    const apiWarnings = Array.isArray(raw.warnings) ? raw.warnings : [];
+    return apiWarnings.map((w) =>
+      typeof w === 'string' ? w
+        : (w && typeof w === 'object' ? (w.message || w.msg || w.text || JSON.stringify(w)) : String(w))
+    );
+  }
 
-    if (apiWarnings.length > 0) {
-      const warnItems = apiWarnings.map((w) => {
-        const text = typeof w === 'string' ? w
-          : (w && typeof w === 'object' ? (w.message || w.msg || w.text || JSON.stringify(w)) : String(w));
-        return `<li>${esc(text)}</li>`;
-      }).join('');
-      html += `
-        <div class="autopluto-report-section autopluto-report-section--warn">
-          <div class="autopluto-section-title autopluto-section-title--warn">API Warnings</div>
-          <ul class="autopluto-report-list autopluto-report-list--warn">
-            ${warnItems}
-          </ul>
-        </div>`;
+  function buildCollapsibleBlock(title, innerHtml, tone) {
+    if (!innerHtml) return '';
+    const toneClass = tone === 'warning' ? ' autopluto-details--warning' : '';
+    return `<details class="autopluto-details${toneClass}">
+      <summary class="autopluto-details-summary">
+        <span class="autopluto-details-title">${esc(title)}</span>
+        <span class="autopluto-details-arrow">▶</span>
+      </summary>
+      <div class="autopluto-details-body">${innerHtml}</div>
+    </details>`;
+  }
+
+  function buildCollapsibleSection(title, items, tone) {
+    if (!items || items.length === 0) return '';
+    const listClass = tone === 'muted' ? ' autopluto-details-list--muted' : '';
+    const itemsHtml = `<ul class="autopluto-details-list${listClass}">
+      ${items.map((item) => `<li>${esc(typeof item === 'string' ? item : JSON.stringify(item))}</li>`).join('')}
+    </ul>`;
+    return buildCollapsibleBlock(`${title} (${items.length})`, itemsHtml, tone);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MODULAR UI BUILDER FUNCTIONS  (premium redesign v7)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function buildHeaderSection(vehicleData, result) {
+    const modelBadge = result.model_version
+      ? `<span class="autopluto-badge-model">${esc(result.model_version)}</span>` : '';
+
+    const metaTags = [];
+    if (vehicleData.vin) {
+      metaTags.push(`<span class="autopluto-meta-tag autopluto-meta-tag--mono">◈ ${esc(vehicleData.vin)}</span>`);
+    } else {
+      metaTags.push(`<span class="autopluto-meta-tag autopluto-meta-tag--warn">◈ VIN not detected</span>`);
+    }
+    if (vehicleData.mileage) {
+      metaTags.push(`<span class="autopluto-meta-tag">◎ ${fmtNum(vehicleData.mileage)}</span>`);
+    }
+    if (vehicleData.cityAuction) {
+      metaTags.push(`<span class="autopluto-meta-tag">📍 ${esc(vehicleData.cityAuction)}</span>`);
+    }
+    if (vehicleData.trim) {
+      metaTags.push(`<span class="autopluto-meta-tag">✦ ${esc(vehicleData.trim)}</span>`);
     }
 
-    return html;
+    return `
+      <div class="autopluto-card-header">
+        <div class="autopluto-header-top">
+          <div class="autopluto-header-title-group">
+            <div class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</div>
+            <div class="autopluto-header-badges">
+              <span class="autopluto-badge-ai">Estimate Report</span>
+              ${modelBadge}
+            </div>
+          </div>
+          <button class="autopluto-card-close" title="Close">✕</button>
+        </div>
+        <div class="autopluto-header-meta">${metaTags.join('')}</div>
+      </div>`;
+  }
+
+  function buildPrimaryPriceCards(emp, rmb, currentPrice, hasCurrentPrice) {
+    return `
+      <div class="autopluto-pricing-section">
+        <div class="autopluto-price-card autopluto-price-card--rmb">
+          <div class="autopluto-price-card-label">Recommended Max Bid</div>
+          <div class="autopluto-price-card-value">${fmt(rmb)}</div>
+          <div class="autopluto-price-card-sub">Your ceiling price</div>
+        </div>
+        <div class="autopluto-pricing-secondary-row">
+          <div class="autopluto-price-card autopluto-price-card--emp">
+            <div class="autopluto-price-card-label">Est. Market Price</div>
+            <div class="autopluto-price-card-value">${fmt(emp)}</div>
+          </div>
+          <div class="autopluto-price-card autopluto-price-card--bid">
+            <div class="autopluto-price-card-label">Current Bid</div>
+            <div class="autopluto-price-card-value">${hasCurrentPrice ? fmt(currentPrice) : '—'}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function buildDecisionInsight(margin, canCalculate) {
+    if (!canCalculate || margin === null) {
+      return `<div class="autopluto-insight-bar autopluto-insight-bar--neutral">
+        <span class="autopluto-insight-dot"></span>
+        <div class="autopluto-insight-content">
+          <span class="autopluto-insight-label">No active bid</span>
+          <span class="autopluto-insight-meta">Cannot calculate margin — awaiting auction price</span>
+        </div>
+      </div>`;
+    }
+    if (margin > 1000) {
+      return `<div class="autopluto-insight-bar autopluto-insight-bar--good">
+        <span class="autopluto-insight-dot"></span>
+        <div class="autopluto-insight-content">
+          <span class="autopluto-insight-label">Good room to bid</span>
+          <span class="autopluto-insight-meta"><strong>${fmt(margin)}</strong> below max bid</span>
+        </div>
+      </div>`;
+    }
+    if (margin >= 0) {
+      return `<div class="autopluto-insight-bar autopluto-insight-bar--caution">
+        <span class="autopluto-insight-dot"></span>
+        <div class="autopluto-insight-content">
+          <span class="autopluto-insight-label">Approaching limit</span>
+          <span class="autopluto-insight-meta"><strong>${fmt(margin)}</strong> below max bid</span>
+        </div>
+      </div>`;
+    }
+    return `<div class="autopluto-insight-bar autopluto-insight-bar--danger">
+      <span class="autopluto-insight-dot"></span>
+      <div class="autopluto-insight-content">
+        <span class="autopluto-insight-label">Above recommended max — consider walking away</span>
+        <span class="autopluto-insight-meta"><strong>${fmt(Math.abs(margin))}</strong> over limit</span>
+      </div>
+    </div>`;
+  }
+
+  function buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice) {
+    if (rangeLow == null && rangeHigh == null) return '';
+
+    const hasRange = rangeLow != null && rangeHigh != null && rangeHigh > rangeLow;
+    let barHtml    = '';
+    let legendHtml = '';
+
+    if (hasRange) {
+      const clampPct = (val) => val == null ? null
+        : Math.max(1.5, Math.min(98.5, ((val - rangeLow) / (rangeHigh - rangeLow)) * 100));
+
+      const markers = [];
+      if (emp          != null) markers.push({ pct: clampPct(emp),          cls: 'emp',     label: 'Market Price', value: fmt(emp) });
+      if (rmb          != null) markers.push({ pct: clampPct(rmb),          cls: 'rmb',     label: 'Max Bid',      value: fmt(rmb) });
+      if (currentPrice != null) markers.push({ pct: clampPct(currentPrice), cls: 'current', label: 'Current Bid',  value: fmt(currentPrice) });
+
+      const markersHtml = markers.map((m) =>
+        `<div class="autopluto-rm autopluto-rm--${m.cls}" style="left:${m.pct.toFixed(1)}%" title="${esc(m.label)}: ${esc(m.value)}"></div>`
+      ).join('');
+
+      barHtml = `
+        <div class="autopluto-range-viz">
+          <div class="autopluto-range-track">
+            <div class="autopluto-range-track-fill"></div>
+            ${markersHtml}
+          </div>
+          <div class="autopluto-range-bounds">
+            <span>${fmt(rangeLow)}</span>
+            <span>${fmt(rangeHigh)}</span>
+          </div>
+        </div>`;
+
+      if (markers.length > 0) {
+        legendHtml = `<div class="autopluto-range-legend">
+          ${markers.map((m) => `
+            <div class="autopluto-range-legend-item">
+              <span class="autopluto-range-legend-dot autopluto-range-legend-dot--${m.cls}"></span>
+              <span class="autopluto-range-legend-lbl">${esc(m.label)}</span>
+              <span class="autopluto-range-legend-val">${esc(m.value)}</span>
+            </div>`).join('')}
+        </div>`;
+      }
+    } else {
+      barHtml = `<div class="autopluto-range-simple">
+        ${rangeLow  != null ? `<div class="autopluto-range-simple-item"><span class="autopluto-range-simple-lbl">Low</span><span class="autopluto-range-simple-val">${fmt(rangeLow)}</span></div>`  : ''}
+        ${rangeHigh != null ? `<div class="autopluto-range-simple-item"><span class="autopluto-range-simple-lbl">High</span><span class="autopluto-range-simple-val">${fmt(rangeHigh)}</span></div>` : ''}
+      </div>`;
+    }
+
+    return `
+      <div class="autopluto-range-card">
+        <div class="autopluto-range-card-title">Expected Market Range</div>
+        ${barHtml}
+        ${legendHtml}
+      </div>`;
+  }
+
+  function buildConfidenceSection(result, compQuality) {
+    const confidence = result.confidence_level;
+    const safety     = result.bid_safety_level;
+    const comps      = result.comparable_count;
+    const fallback   = result.market_fallback_level;
+
+    if (!confidence && !safety && comps == null && !fallback && !compQuality) return '';
+
+    const confColor = getConfidenceColor(confidence);
+    const confPct   = !confidence ? 0
+      : confidence.toLowerCase().includes('high')   ? 88
+      : confidence.toLowerCase().includes('medium') ? 54
+      : 20;
+
+    const indicators = [];
+    if (safety)      indicators.push({ label: 'Safety',   value: safety.replace(/_/g, ' '),      color: getSafetyColor(safety) });
+    if (comps != null) indicators.push({ label: 'Comps',  value: String(comps),                  color: comps > 0 ? 'blue' : 'gray' });
+    if (compQuality) {
+      const qc = compQuality.toLowerCase();
+      const qColor = (qc === 'good' || qc === 'high') ? 'green' : (qc === 'unreliable' || qc === 'low') ? 'red' : 'yellow';
+      indicators.push({ label: 'Quality',  value: compQuality.replace(/_/g, ' '),  color: qColor });
+    }
+    if (fallback)    indicators.push({ label: 'Fallback', value: fallback.replace(/_/g, ' '),    color: getFallbackColor(fallback) });
+
+    const confMainHtml = confidence ? `
+      <div class="autopluto-conf-main">
+        <div class="autopluto-conf-header-row">
+          <span class="autopluto-conf-section-label">Confidence</span>
+          <span class="autopluto-conf-level-badge autopluto-conf-level-badge--${confColor}">${esc(confidence.replace(/_/g, ' '))}</span>
+        </div>
+        <div class="autopluto-conf-meter-track">
+          <div class="autopluto-conf-meter-fill autopluto-conf-meter-fill--${confColor}" style="width:${confPct}%"></div>
+        </div>
+      </div>` : '';
+
+    const indHtml = indicators.length > 0 ? `
+      <div class="autopluto-conf-indicators">
+        ${indicators.map((i) => `
+          <div class="autopluto-conf-ind autopluto-conf-ind--${i.color}">
+            <span class="autopluto-conf-ind-lbl">${esc(i.label)}</span>
+            <span class="autopluto-conf-ind-val">${esc(i.value)}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    return `<div class="autopluto-confidence-card">${confMainHtml}${indHtml}</div>`;
+  }
+
+  function buildWarningCard(manualReview) {
+    if (!manualReview) return '';
+    return `
+      <div class="autopluto-manual-review-box">
+        <span class="autopluto-manual-review-icon">⚠</span>
+        <div>
+          <div class="autopluto-manual-review-title">Manual Review Required</div>
+          <div class="autopluto-manual-review-sub">Do not rely on this estimate without additional review.</div>
+        </div>
+      </div>`;
+  }
+
+  function buildFooterActions() {
+    return `
+      <div class="autopluto-card-footer">
+        <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-refresh-btn">↻ Refresh</button>
+        <button class="autopluto-footer-btn autopluto-footer-btn--ghost autopluto-copy-result-btn">⎘ Copy</button>
+      </div>`;
   }
 
   function showLoadingPopover(rowEl, vehicleTitle) {
@@ -830,223 +1070,100 @@
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
 
-    // ── Current price card ───────────────────────────────────────
-    const currentPriceCard = hasCurrentPrice ? `
-      <div class="autopluto-price-card autopluto-price-card--current">
-        <div class="autopluto-price-card-label">Current Bid</div>
-        <div class="autopluto-price-card-value">${fmt(currentPrice)}</div>
-      </div>` : '';
+    // ── Section builders ─────────────────────────────────────────
+    const headerHtml     = buildHeaderSection(vehicleData, result);
+    const priceCardsHtml = buildPrimaryPriceCards(emp, rmb, currentPrice, hasCurrentPrice);
+    const insightHtml    = buildDecisionInsight(margin, hasCurrentPrice && rmb != null);
+    const rangeHtml      = buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, currentPrice);
+    const confHtml       = buildConfidenceSection(result, compQuality);
+    const warningBoxHtml = buildWarningCard(manualReview);
 
-    // ── Secondary prices sub-grid ────────────────────────────────
-    const secondaryPrices = `
-      <div class="autopluto-secondary-prices">
-        <div class="autopluto-secondary-metric">
-          <span class="autopluto-secondary-label">Model Price</span>
-          <span class="autopluto-secondary-value">${modelPrice != null ? fmt(modelPrice) : '—'}</span>
-        </div>
-        <div class="autopluto-secondary-metric">
-          <span class="autopluto-secondary-label">Calibrated</span>
-          <span class="autopluto-secondary-value">${calibratedPrice != null ? fmt(calibratedPrice) : '—'}</span>
-        </div>
-        <div class="autopluto-secondary-metric">
-          <span class="autopluto-secondary-label">Adjusted</span>
-          <span class="autopluto-secondary-value">${adjustedPrice != null ? fmt(adjustedPrice) : '—'}</span>
-        </div>
-        <div class="autopluto-secondary-metric">
-          <span class="autopluto-secondary-label">Comp Median</span>
-          <span class="autopluto-secondary-value">${compMedian != null ? fmt(compMedian) : '—'}</span>
-        </div>
-      </div>`;
-
-    // ── Decision banner ──────────────────────────────────────────
-    const decisionHtml = buildDecisionBanner(margin, hasCurrentPrice && rmb != null);
-
-    // ── Expected range ───────────────────────────────────────────
-    const rangeHtml = (rangeLow != null || rangeHigh != null) ? `
-      <div class="autopluto-range-card">
-        <span class="autopluto-range-label">Expected Market Range</span>
-        <span class="autopluto-range-value">${rangeLow != null ? fmt(rangeLow) : '?'} — ${rangeHigh != null ? fmt(rangeHigh) : '?'}</span>
-      </div>` : '';
-
-    // ── Badge pills ──────────────────────────────────────────────
-    let badgesHtml = '';
-    if (result.confidence_level) {
-      badgesHtml += buildBadgeItem('Confidence', result.confidence_level.replace(/_/g, ' '), getConfidenceColor(result.confidence_level));
-    }
-    if (result.bid_safety_level) {
-      badgesHtml += buildBadgeItem('Safety', result.bid_safety_level.replace(/_/g, ' '), getSafetyColor(result.bid_safety_level));
-    }
-    if (result.comparable_count != null) {
-      badgesHtml += buildBadgeItem('Comps', String(result.comparable_count), result.comparable_count > 0 ? 'blue' : 'gray');
-    }
-    if (compQuality) {
-      const qc = compQuality.toLowerCase();
-      const qColor = (qc === 'good' || qc === 'high') ? 'green'
-        : (qc === 'unreliable' || qc === 'low') ? 'red' : 'yellow';
-      badgesHtml += buildBadgeItem('Quality', compQuality.replace(/_/g, ' '), qColor);
-    }
-    if (result.market_fallback_level) {
-      badgesHtml += buildBadgeItem('Fallback', result.market_fallback_level.replace(/_/g, ' '), getFallbackColor(result.market_fallback_level));
-    }
-    if (manualReview) {
-      badgesHtml += buildBadgeItem('Review', 'Required', 'red');
-    }
-
-    // ── Manual review warning box ────────────────────────────────
-    const manualReviewHtml = manualReview ? `
-      <div class="autopluto-manual-review-box">
-        <span class="autopluto-manual-review-icon">⚠</span>
-        <div>
-          <div class="autopluto-manual-review-title">Manual Review Required</div>
-          <div class="autopluto-manual-review-sub">Do not rely on this estimate without additional review.</div>
-        </div>
-      </div>` : '';
-
-    // ── General warnings ─────────────────────────────────────────
-    let warningHtml = '';
+    // ── General inline warnings ──────────────────────────────────
+    let inlineWarnings = '';
     if (bidGtEmp) {
-      warningHtml += `<div class="autopluto-warning-banner">⚠ Recommended max bid exceeds estimated market price. Review before bidding.</div>`;
+      inlineWarnings += `<div class="autopluto-warning-banner">⚠ Recommended max bid exceeds estimated market price. Review before bidding.</div>`;
     }
     if (!vehicleData.vin) {
-      warningHtml += `<div class="autopluto-warning-banner">⚠ VIN not detected — estimate may be less accurate.</div>`;
+      inlineWarnings += `<div class="autopluto-warning-banner">⚠ VIN not detected — estimate may be less accurate.</div>`;
     }
 
-    // ── Header badges ────────────────────────────────────────────
-    const modelBadge = result.model_version
-      ? `<span class="autopluto-badge-model">${esc(result.model_version)}</span>` : '';
-    const calibBadge = result.calibration_version
-      ? `<span class="autopluto-badge-calib">${esc(result.calibration_version)}</span>` : '';
+    // ── Collapsible: Report Notes ────────────────────────────────
+    const reportNotesHtml = buildCollapsibleSection('Report Notes', normalizeReasonList(result), 'default');
 
-    // ── Vehicle identity tags ────────────────────────────────────
-    const cityTag   = vehicleData.cityAuction
-      ? `<span class="autopluto-identity-tag">📍 ${esc(vehicleData.cityAuction)}</span>` : '';
-    const sellerTag = vehicleData.sellerName
-      ? `<span class="autopluto-identity-tag">🏢 ${esc(vehicleData.sellerName)}</span>` : '';
-    const trimTag   = vehicleData.trim
-      ? `<span class="autopluto-identity-tag">✦ ${esc(vehicleData.trim)}</span>` : '';
+    // ── Collapsible: API Warnings ────────────────────────────────
+    const apiWarningsHtml = buildCollapsibleSection('API Warnings', normalizeWarningList(result), 'warning');
 
-    // ── Adjustment details accordion ─────────────────────────────
-    const adjustItems = [];
-    if (riskPct     != null) adjustItems.push({ label: 'Risk Adjustment',    value: `${riskPct}%` });
-    if (discountPct != null) adjustItems.push({ label: 'Effective Discount',  value: `${discountPct}%` });
-    if (blendReason)         adjustItems.push({ label: 'Blend Reason',        value: blendReason.replace(/_/g, ' ') });
-    if (blendWeight != null) adjustItems.push({ label: 'Model Blend',         value: `${(blendWeight * 100).toFixed(0)}%` });
+    // ── Collapsible: Adjustment Details ─────────────────────────
+    const priceRows = [
+      { label: 'Model Price',   value: modelPrice      != null ? fmt(modelPrice)      : null },
+      { label: 'Calibrated',    value: calibratedPrice != null ? fmt(calibratedPrice) : null },
+      { label: 'Adjusted',      value: adjustedPrice   != null ? fmt(adjustedPrice)   : null },
+      { label: 'Comp Median',   value: compMedian      != null ? fmt(compMedian)      : null },
+      { label: 'Risk Adj.',     value: riskPct         != null ? `${riskPct}%`        : null },
+      { label: 'Eff. Discount', value: discountPct     != null ? `${discountPct}%`    : null },
+      { label: 'Blend Reason',  value: blendReason     ? blendReason.replace(/_/g, ' ') : null },
+      { label: 'Model Blend',   value: blendWeight     != null ? `${(blendWeight * 100).toFixed(0)}%` : null },
+    ].filter((r) => r.value != null);
 
-    const adjustHtml = (adjustItems.length > 0 || riskReasons.length > 0) ? `
-      <div class="autopluto-debug-panel">
-        <button class="autopluto-debug-toggle">
-          <span>Adjustment Details</span>
-          <span class="autopluto-debug-arrow">▶</span>
-        </button>
-        <div class="autopluto-debug-content">
-          <div class="autopluto-adjust-grid">
-            ${adjustItems.map((i) => `
-              <div class="autopluto-adjust-item">
-                <span class="autopluto-adjust-label">${esc(i.label)}</span>
-                <span class="autopluto-adjust-value">${esc(i.value)}</span>
-              </div>`).join('')}
-          </div>
-          ${riskReasons.length > 0 ? `
-            <div class="autopluto-adjust-reasons-title">Risk Adjustment Reasons</div>
-            <ul class="autopluto-report-list autopluto-report-list--muted">
-              ${riskReasons.map((r) => `<li>${esc(typeof r === 'string' ? r : JSON.stringify(r))}</li>`).join('')}
-            </ul>` : ''}
-        </div>
-      </div>` : '';
+    let adjustInnerHtml = '';
+    if (priceRows.length > 0) {
+      adjustInnerHtml += `<div class="autopluto-adjust-grid">
+        ${priceRows.map((r) => `<div class="autopluto-adjust-item">
+          <span class="autopluto-adjust-label">${esc(r.label)}</span>
+          <span class="autopluto-adjust-value">${esc(r.value)}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+    if (riskReasons.length > 0) {
+      adjustInnerHtml += `<div class="autopluto-adjust-reasons-title">Risk Adjustment Reasons</div>
+        <ul class="autopluto-details-list autopluto-details-list--muted">
+          ${riskReasons.map((r) => `<li>${esc(typeof r === 'string' ? r : JSON.stringify(r))}</li>`).join('')}
+        </ul>`;
+    }
+    const adjustHtml = adjustInnerHtml
+      ? buildCollapsibleBlock('Adjustment Details', adjustInnerHtml, 'muted')
+      : '';
 
-    // ── Debug payload ────────────────────────────────────────────
+    // ── Collapsible: Input Coverage ──────────────────────────────
+    const inputCoverageHtml = buildCollapsibleBlock('Input Coverage', buildDataQuality(vehicleData), 'muted');
+
+    // ── Collapsible: Debug Details ───────────────────────────────
     const debugPayload = JSON.stringify({ vehicle: vehicleData, result: result._raw }, null, 2);
+    const debugHtml = buildCollapsibleBlock(
+      'Debug Details',
+      `<pre class="autopluto-debug-pre">${esc(debugPayload)}</pre>`,
+      'muted'
+    );
 
     card.innerHTML = `
-      <div class="autopluto-card-header">
-        <div class="autopluto-header-top">
-          <div class="autopluto-header-title-group">
-            <div class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</div>
-            <div class="autopluto-header-badges">
-              <span class="autopluto-badge-ai">Estimate Report</span>
-              ${modelBadge}${calibBadge}
-            </div>
-          </div>
-          <button class="autopluto-card-close" title="Close">✕</button>
-        </div>
-        <div class="autopluto-header-meta">
-          ${vehicleData.vin
-            ? `<span class="autopluto-card-vin">VIN: ${esc(vehicleData.vin)}</span>`
-            : '<span class="autopluto-card-vin autopluto-vin-missing">VIN: not detected</span>'}
-          ${vehicleData.mileage ? `<span class="autopluto-mileage-tag">◎ ${fmtNum(vehicleData.mileage)}</span>` : ''}
-          ${cityTag}${sellerTag}${trimTag}
-        </div>
-      </div>
-
+      ${headerHtml}
       <div class="autopluto-card-body">
-
-        <div class="autopluto-price-grid">
-          <div class="autopluto-price-card autopluto-price-card--market">
-            <div class="autopluto-price-card-label">Est. Market Price</div>
-            <div class="autopluto-price-card-value">${fmt(emp)}</div>
-          </div>
-          <div class="autopluto-price-card autopluto-price-card--main">
-            <div class="autopluto-price-card-label">Rec. Max Bid</div>
-            <div class="autopluto-price-card-value">${fmt(rmb)}</div>
-          </div>
-          ${currentPriceCard}
-        </div>
-
-        ${secondaryPrices}
-
-        ${decisionHtml}
-
+        ${priceCardsHtml}
+        ${insightHtml}
         ${rangeHtml}
-
-        ${badgesHtml ? `<div class="autopluto-badges-section">${badgesHtml}</div>` : ''}
-
-        ${manualReviewHtml}
-
-        ${warningHtml}
-
-        ${buildReportNotes(result)}
-
-        ${adjustHtml}
-
-        ${buildDataQuality(vehicleData)}
-
-        <div class="autopluto-debug-panel">
-          <button class="autopluto-debug-toggle">
-            <span>⌥ Debug Details</span>
-            <span class="autopluto-debug-arrow">▶</span>
-          </button>
-          <div class="autopluto-debug-content">
-            <pre class="autopluto-debug-pre">${esc(debugPayload)}</pre>
-          </div>
+        ${confHtml}
+        ${warningBoxHtml}
+        ${inlineWarnings}
+        <div class="autopluto-collapsibles">
+          ${reportNotesHtml}
+          ${apiWarningsHtml}
+          ${adjustHtml}
+          ${inputCoverageHtml}
+          ${debugHtml}
         </div>
-
       </div>
-
-      <div class="autopluto-card-footer">
-        <button class="autopluto-footer-btn autopluto-footer-btn--primary autopluto-refresh-btn">↻ Refresh</button>
-        <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-copy-result-btn">⎘ Copy Result</button>
-      </div>
+      ${buildFooterActions()}
     `;
 
-    // ── Close ─────────────────────────────────────────────────────
+    // ── Close button ─────────────────────────────────────────────
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
       e.stopPropagation();
       closeActivePopover();
     });
 
-    // ── All accordion toggles (debug + adjustment) ────────────────
-    card.querySelectorAll('.autopluto-debug-toggle').forEach((toggle) => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const panel   = toggle.closest('.autopluto-debug-panel');
-        const content = panel && panel.querySelector('.autopluto-debug-content');
-        const arrow   = panel && panel.querySelector('.autopluto-debug-arrow');
-        if (content) {
-          const open = content.classList.toggle('autopluto-debug-open');
-          if (arrow) arrow.textContent = open ? '▼' : '▶';
-          positionPopover(card, rowEl);
-        }
-      });
+    // ── <details> toggle → reposition popover ───────────────────
+    card.querySelectorAll('details.autopluto-details').forEach((det) => {
+      det.addEventListener('toggle', () => positionPopover(card, rowEl));
     });
 
     // ── Copy result ───────────────────────────────────────────────
@@ -1073,7 +1190,7 @@
       };
       navigator.clipboard.writeText(JSON.stringify(summary, null, 2)).then(() => {
         btn.textContent = '✓ Copied';
-        setTimeout(() => { btn.textContent = '⎘ Copy Result'; }, 2000);
+        setTimeout(() => { btn.textContent = '⎘ Copy'; }, 2000);
       });
     });
 
@@ -1363,6 +1480,7 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   function init() {
+    injectGeistFont();
     injectIntoRows(document);
     startObserver();
 
