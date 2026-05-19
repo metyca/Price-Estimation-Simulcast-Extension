@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap');
 
 /* ============================================================
-   AutoPluто – Auction Pricing Assistant  (v6 – premium decision UI)
+   AutoPluто – Auction Pricing Assistant  (light web-app UI)
    CSS for injected UI (content script)
    All classes prefixed: autopluto-
    Font stack: Geist Sans → Geist → Inter → system-ui
@@ -140,54 +140,51 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CARD / POPOVER  – premium decision UI
+   CARD / POPOVER  – light web-app modal
    ═══════════════════════════════════════════════════════════════ */
 
 .autopluto-card {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
   position: fixed !important;
-  width: 500px !important;
-  max-height: 90vh !important;
-  overflow-y: auto !important;
-  background: #111827 !important;
-  border: 1px solid #374151 !important;
+  width: 960px !important;
+  max-width: calc(100vw - 32px) !important;
+  max-height: calc(100vh - 24px) !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 14px !important;
-  box-shadow: 0 24px 64px rgba(0,0,0,.75), 0 4px 24px rgba(0,0,0,.5) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06) !important;
   z-index: 9100 !important;
-  color: #f9fafb !important;
+  color: #111827 !important;
   animation: autopluto-popover-in 0.18s ease !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #374151 transparent !important;
   font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
-.autopluto-card::-webkit-scrollbar { width: 4px !important; }
-.autopluto-card::-webkit-scrollbar-track { background: transparent !important; }
-.autopluto-card::-webkit-scrollbar-thumb { background: #374151 !important; border-radius: 2px !important; }
-
 @keyframes autopluto-popover-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ── Card header ─────────────────────────────────────────────── */
 .autopluto-card-header {
-  background: linear-gradient(135deg, #0f2557 0%, #1e3fa8 55%, #2563eb 100%) !important;
-  padding: 10px 14px 8px !important;
+  flex-shrink: 0 !important;
+  background: #ffffff !important;
+  padding: 10px 16px 8px !important;
   border-radius: 14px 14px 0 0 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 
 .autopluto-card-header--error {
-  background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%) !important;
-  border-bottom-color: rgba(255,255,255,0.1) !important;
+  background: #fef2f2 !important;
+  border-bottom-color: #fecaca !important;
 }
 
 .autopluto-header-top {
   display: flex !important;
   align-items: flex-start !important;
   justify-content: space-between !important;
-  gap: 10px !important;
+  gap: 12px !important;
 }
 
 .autopluto-header-title-group {
@@ -196,9 +193,9 @@
 }
 
 .autopluto-card-title {
-  font-size: 15px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
+  color: #111827 !important;
   letter-spacing: -0.3px !important;
   line-height: 1.3 !important;
   white-space: nowrap !important;
@@ -209,35 +206,35 @@
 .autopluto-header-badges {
   display: flex !important;
   flex-wrap: wrap !important;
-  gap: 5px !important;
-  margin-top: 5px !important;
+  gap: 4px !important;
+  margin-top: 3px !important;
   align-items: center !important;
 }
 
 .autopluto-badge-ai {
   display: inline-block !important;
-  background: rgba(255,255,255,0.15) !important;
-  color: #ffffff !important;
-  font-size: 9px !important;
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
-  padding: 2px 8px !important;
+  padding: 2px 9px !important;
   border-radius: 100px !important;
-  letter-spacing: 0.6px !important;
+  letter-spacing: 0.5px !important;
   text-transform: uppercase !important;
-  border: 1px solid rgba(255,255,255,0.25) !important;
+  border: 1px solid #bfdbfe !important;
   white-space: nowrap !important;
 }
 
 .autopluto-badge-model {
   display: inline-block !important;
-  background: rgba(255,255,255,0.08) !important;
-  color: rgba(255,255,255,0.7) !important;
-  font-size: 9px !important;
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  font-size: 10px !important;
   font-weight: 600 !important;
-  padding: 2px 7px !important;
+  padding: 2px 8px !important;
   border-radius: 100px !important;
-  letter-spacing: 0.4px !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
+  letter-spacing: 0.3px !important;
+  border: 1px solid #e5e7eb !important;
   font-family: 'Consolas', 'Courier New', monospace !important;
   white-space: nowrap !important;
 }
@@ -246,43 +243,34 @@
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 2px 8px !important;
-  margin-top: 5px !important;
+  margin-top: 4px !important;
   align-items: center !important;
 }
 
-.autopluto-card-vin {
-  font-size: 10px !important;
-  color: rgba(255,255,255,0.55) !important;
-  font-family: 'Consolas', 'Courier New', monospace !important;
-  letter-spacing: 0.3px !important;
-}
-
-.autopluto-mileage-tag {
-  font-size: 10px !important;
-  color: rgba(255,255,255,0.6) !important;
+.autopluto-meta-tag {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  white-space: nowrap !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 3px !important;
 }
 
-.autopluto-identity-tag {
-  font-size: 10px !important;
-  color: rgba(255,255,255,0.5) !important;
-  white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 2px !important;
+.autopluto-meta-tag--mono {
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  color: #374151 !important;
+  letter-spacing: 0.3px !important;
 }
 
-.autopluto-vin-missing {
-  color: rgba(255,180,50,0.8) !important;
+.autopluto-meta-tag--warn {
+  color: #d97706 !important;
 }
 
 .autopluto-card-close {
   all: initial !important;
   cursor: pointer !important;
-  color: rgba(255,255,255,0.6) !important;
-  font-size: 16px !important;
+  color: #9ca3af !important;
+  font-size: 18px !important;
   line-height: 1 !important;
   padding: 4px 6px !important;
   border-radius: 6px !important;
@@ -292,20 +280,57 @@
 }
 
 .autopluto-card-close:hover {
-  color: #ffffff !important;
-  background: rgba(255,255,255,0.15) !important;
+  color: #374151 !important;
+  background: #f3f4f6 !important;
+}
+
+/* ── Manual Review Banner (full-width, between header and body) ── */
+.autopluto-manual-review-banner {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 20px !important;
+  background: #fef2f2 !important;
+  border-bottom: 1px solid #fecaca !important;
+}
+
+.autopluto-manual-review-banner .autopluto-manual-review-icon {
+  color: #ef4444 !important;
+  font-size: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-manual-review-banner .autopluto-manual-review-text {
+  font-size: 13px !important;
+  color: #991b1b !important;
+  line-height: 1.4 !important;
+}
+
+.autopluto-manual-review-banner .autopluto-manual-review-text strong {
+  font-weight: 700 !important;
 }
 
 /* ── Card body ───────────────────────────────────────────────── */
 .autopluto-card-body {
-  padding: 10px 14px !important;
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 10px 14px 10px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
+  background: #f8fafc !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
 }
 
+.autopluto-card-body::-webkit-scrollbar { width: 5px !important; }
+.autopluto-card-body::-webkit-scrollbar-track { background: transparent !important; }
+.autopluto-card-body::-webkit-scrollbar-thumb { background: #cbd5e1 !important; border-radius: 3px !important; }
+.autopluto-card-body::-webkit-scrollbar-thumb:hover { background: #94a3b8 !important; }
+
 /* ═══════════════════════════════════════════════════════════════
-   DECISION BANNER  – the #1 buying signal, most prominent section
+   DECISION BANNER  (legacy, kept for backwards compat)
    ═══════════════════════════════════════════════════════════════ */
 
 .autopluto-decision-banner {
@@ -317,46 +342,37 @@
   gap: 10px !important;
 }
 
-.autopluto-decision-banner--good    { background: #052e16 !important; border: 1px solid #166534 !important; }
-.autopluto-decision-banner--caution { background: #1c1500 !important; border: 1px solid #92400e !important; }
-.autopluto-decision-banner--danger  { background: #200b0b !important; border: 1px solid #9b1c1c !important; }
-.autopluto-decision-banner--neutral { background: #181f2c !important; border: 1px solid #2d3748 !important; }
+.autopluto-decision-banner--good    { background: #f0fdf4 !important; border: 1px solid #bbf7d0 !important; }
+.autopluto-decision-banner--caution { background: #fffbeb !important; border: 1px solid #fde68a !important; }
+.autopluto-decision-banner--danger  { background: #fef2f2 !important; border: 1px solid #fecaca !important; }
+.autopluto-decision-banner--neutral { background: #f9fafb !important; border: 1px solid #e5e7eb !important; }
 
-.autopluto-decision-left {
-  flex: 1 !important;
-  min-width: 0 !important;
-}
+.autopluto-decision-left { flex: 1 !important; min-width: 0 !important; }
 
 .autopluto-decision-pill {
   display: inline-block !important;
-  font-size: 9px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.6px !important;
   padding: 2px 8px !important;
   border-radius: 100px !important;
-  margin-bottom: 5px !important;
+  margin-bottom: 4px !important;
 }
 
-.autopluto-decision-pill--good    { background: rgba(74,222,128,0.12) !important; color: #4ade80 !important; border: 1px solid rgba(74,222,128,0.3) !important; }
-.autopluto-decision-pill--caution { background: rgba(251,191,36,0.12) !important; color: #fbbf24 !important; border: 1px solid rgba(251,191,36,0.3) !important; }
-.autopluto-decision-pill--danger  { background: rgba(248,113,113,0.12) !important; color: #f87171 !important; border: 1px solid rgba(248,113,113,0.35) !important; }
-.autopluto-decision-pill--neutral { background: rgba(156,163,175,0.1) !important; color: #9ca3af !important; border: 1px solid rgba(156,163,175,0.2) !important; }
+.autopluto-decision-pill--good    { background: #dcfce7 !important; color: #059669 !important; border: 1px solid #86efac !important; }
+.autopluto-decision-pill--caution { background: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+.autopluto-decision-pill--danger  { background: #fee2e2 !important; color: #dc2626 !important; border: 1px solid #fca5a5 !important; }
+.autopluto-decision-pill--neutral { background: #f3f4f6 !important; color: #6b7280 !important; border: 1px solid #e5e7eb !important; }
 
-.autopluto-decision-sub {
-  font-size: 11px !important;
-  line-height: 1.35 !important;
-}
+.autopluto-decision-sub { font-size: 11px !important; line-height: 1.35 !important; }
 
-.autopluto-decision-banner--good    .autopluto-decision-sub { color: #86efac !important; }
-.autopluto-decision-banner--caution .autopluto-decision-sub { color: #fde68a !important; }
-.autopluto-decision-banner--danger  .autopluto-decision-sub { color: #fca5a5 !important; }
+.autopluto-decision-banner--good    .autopluto-decision-sub { color: #059669 !important; }
+.autopluto-decision-banner--caution .autopluto-decision-sub { color: #d97706 !important; }
+.autopluto-decision-banner--danger  .autopluto-decision-sub { color: #dc2626 !important; }
 .autopluto-decision-banner--neutral .autopluto-decision-sub { color: #6b7280 !important; }
 
-.autopluto-decision-right {
-  text-align: right !important;
-  flex-shrink: 0 !important;
-}
+.autopluto-decision-right { text-align: right !important; flex-shrink: 0 !important; }
 
 .autopluto-decision-amount {
   font-size: 20px !important;
@@ -365,10 +381,10 @@
   line-height: 1 !important;
 }
 
-.autopluto-decision-amount--good    { color: #4ade80 !important; }
-.autopluto-decision-amount--caution { color: #fbbf24 !important; }
-.autopluto-decision-amount--danger  { color: #f87171 !important; }
-.autopluto-decision-amount--neutral { color: #6b7280 !important; font-size: 16px !important; }
+.autopluto-decision-amount--good    { color: #059669 !important; }
+.autopluto-decision-amount--caution { color: #d97706 !important; }
+.autopluto-decision-amount--danger  { color: #dc2626 !important; }
+.autopluto-decision-amount--neutral { color: #9ca3af !important; font-size: 16px !important; }
 
 .autopluto-decision-amount-label {
   font-size: 9px !important;
@@ -376,261 +392,1247 @@
   text-transform: uppercase !important;
   letter-spacing: 0.3px !important;
   margin-top: 3px !important;
+  color: #9ca3af !important;
 }
 
-.autopluto-decision-banner--good    .autopluto-decision-amount-label { color: #86efac !important; }
-.autopluto-decision-banner--caution .autopluto-decision-amount-label { color: #fde68a !important; }
-.autopluto-decision-banner--danger  .autopluto-decision-amount-label { color: #fca5a5 !important; }
-.autopluto-decision-banner--neutral .autopluto-decision-amount-label { color: #4b5563 !important; }
+/* ═══════════════════════════════════════════════════════════════
+   B. PRIMARY INTELLIGENCE SECTION
+   Left hero (EMP + review pill + reliability) + Right stack
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ── Price grid ──────────────────────────────────────────────── */
-.autopluto-price-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+.autopluto-primary-intel {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+/* ── EMP Hero Card (left, ~55% width) ──────────────────────── */
+.autopluto-emp-hero {
+  flex: 1 1 55% !important;
+  background: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  border-top: 4px solid #10b981 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 8px !important;
+  min-width: 0 !important;
 }
 
-.autopluto-price-card {
-  background: #1f2937 !important;
-  border: 1px solid #374151 !important;
-  border-radius: 10px !important;
-  padding: 12px 12px 10px !important;
-  text-align: center !important;
+.autopluto-emp-hero--red {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+  border-top-color: #ef4444 !important;
 }
 
-.autopluto-price-card--main {
-  background: linear-gradient(155deg, #052e16, #07401e) !important;
-  border-color: #0d6e3f !important;
-  box-shadow: 0 0 0 1px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
-}
-
-.autopluto-price-card--market {
-  background: #0c1e3a !important;
-  border-color: #1e3a5f !important;
-}
-
-.autopluto-price-card--current {
-  background: #161b26 !important;
-  border-color: #252d3d !important;
-}
-
-.autopluto-price-card-label {
-  font-size: 9px !important;
-  font-weight: 600 !important;
+.autopluto-emp-hero-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #6b7280 !important;
-  margin-bottom: 6px !important;
+  letter-spacing: 0.8px !important;
+  color: #059669 !important;
+  margin-bottom: 2px !important;
 }
 
-.autopluto-price-card--main    .autopluto-price-card-label { color: #34d399 !important; }
-.autopluto-price-card--market  .autopluto-price-card-label { color: #60a5fa !important; }
-.autopluto-price-card--current .autopluto-price-card-label { color: #9ca3af !important; }
+.autopluto-emp-hero--red .autopluto-emp-hero-label { color: #dc2626 !important; }
 
-.autopluto-price-card-value {
-  font-size: 17px !important;
-  font-weight: 800 !important;
-  color: #f9fafb !important;
+.autopluto-emp-hero-value {
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  color: #059669 !important;
+  letter-spacing: -1.5px !important;
+  line-height: 1 !important;
   white-space: nowrap !important;
-  letter-spacing: -0.5px !important;
-  line-height: 1.1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
-.autopluto-price-card--main    .autopluto-price-card-value { color: #10b981 !important; font-size: 24px !important; letter-spacing: -1px !important; }
-.autopluto-price-card--market  .autopluto-price-card-value { color: #93c5fd !important; font-size: 18px !important; }
-.autopluto-price-card--current .autopluto-price-card-value { color: #d1d5db !important; font-size: 16px !important; }
+.autopluto-emp-hero--red .autopluto-emp-hero-value { color: #ef4444 !important; }
 
-/* ── Expected range card ─────────────────────────────────────── */
-.autopluto-range-card {
-  background: #0a1628 !important;
-  border: 1px solid #1e3a5f !important;
-  border-radius: 10px !important;
-  padding: 12px 14px !important;
+/* ── Review status pill ─────────────────────────────────────── */
+.autopluto-review-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 12px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  align-self: flex-start !important;
+  letter-spacing: 0.1px !important;
 }
 
-.autopluto-range-header {
+.autopluto-review-pill::before {
+  content: '' !important;
+  display: inline-block !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-review-pill--auto {
+  background: #dcfce7 !important;
+  color: #059669 !important;
+  border: 1px solid #86efac !important;
+}
+
+.autopluto-review-pill--auto::before { background: #10b981 !important; }
+
+.autopluto-review-pill--manual {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+.autopluto-review-pill--manual::before { background: #ef4444 !important; }
+
+/* ── Reliability Assessment ─────────────────────────────────── */
+.autopluto-reliability {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  padding-top: 6px !important;
+  border-top: 1px solid rgba(0,0,0,0.06) !important;
+}
+
+.autopluto-reliability-title {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #9ca3af !important;
+  margin-bottom: 2px !important;
+}
+
+.autopluto-reliability-row {
   display: flex !important;
   align-items: center !important;
-  justify-content: space-between !important;
   gap: 10px !important;
-  margin-bottom: 10px !important;
 }
 
-.autopluto-range-label {
+.autopluto-reliability-key {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  min-width: 74px !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Segmented bar ──────────────────────────────────────────── */
+.autopluto-seg-bar {
+  display: flex !important;
+  gap: 3px !important;
+  flex: 1 !important;
+}
+
+.autopluto-seg-item {
+  flex: 1 !important;
+  padding: 3px 6px !important;
+  border-radius: 5px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  background: #e5e7eb !important;
+  color: #9ca3af !important;
+  border: 1px solid #e5e7eb !important;
+  white-space: nowrap !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+.autopluto-seg-item--active.autopluto-seg-item--low,
+.autopluto-seg-item--active.autopluto-seg-item--weak {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  border-color: #fca5a5 !important;
+}
+
+.autopluto-seg-item--active.autopluto-seg-item--medium,
+.autopluto-seg-item--active.autopluto-seg-item--normal {
+  background: #fef3c7 !important;
+  color: #d97706 !important;
+  border-color: #fde68a !important;
+}
+
+.autopluto-seg-item--active.autopluto-seg-item--high,
+.autopluto-seg-item--active.autopluto-seg-item--strong {
+  background: #dcfce7 !important;
+  color: #059669 !important;
+  border-color: #86efac !important;
+}
+
+/* ── Right stack (~45% width) ───────────────────────────────── */
+.autopluto-right-stack {
+  flex: 0 0 45% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+
+/* RMB mini card */
+.autopluto-rmb-mini {
+  background: #ffffff !important;
+  border: 1px solid #bbf7d0 !important;
+  border-top: 3px solid #10b981 !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+}
+
+.autopluto-rmb-mini-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: #059669 !important;
+  margin-bottom: 4px !important;
+}
+
+.autopluto-rmb-mini-value {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #059669 !important;
+  letter-spacing: -0.8px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-rmb-mini-sub {
+  font-size: 10px !important;
+  color: #6b7280 !important;
+  margin-top: 3px !important;
+  font-weight: 500 !important;
+}
+
+/* Right metrics grid */
+.autopluto-right-metrics {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 6px !important;
+  flex: 1 !important;
+}
+
+.autopluto-right-metric {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  padding: 7px 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.autopluto-right-metric-label {
   font-size: 9px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
-  color: #3b82f6 !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
+  color: #9ca3af !important;
+  margin-bottom: 2px !important;
 }
 
-.autopluto-range-value {
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  color: #93c5fd !important;
+.autopluto-right-metric-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
   letter-spacing: -0.3px !important;
   white-space: nowrap !important;
 }
 
-.autopluto-range-track {
-  position: relative !important;
-  height: 4px !important;
-  background: #1e3a5f !important;
-  border-radius: 2px !important;
-  margin-bottom: 6px !important;
-}
-
-.autopluto-range-track-fill {
-  position: absolute !important;
-  inset: 0 !important;
-  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 50%, #1d4ed8 100%) !important;
-  border-radius: 2px !important;
-  opacity: 0.55 !important;
-}
-
-.autopluto-range-marker {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 10px !important;
-  height: 10px !important;
-  background: #93c5fd !important;
-  border: 2px solid #111827 !important;
-  border-radius: 50% !important;
-  box-shadow: 0 0 0 2px rgba(147,197,253,0.35) !important;
-  cursor: default !important;
-}
-
-.autopluto-range-track-labels {
-  display: flex !important;
-  justify-content: space-between !important;
-  font-size: 9px !important;
-  color: #4b5563 !important;
-  font-weight: 500 !important;
-}
-
-/* ── Badge pills (confidence, safety, comparables, fallback) ─── */
-.autopluto-badges-section {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-}
-
-.autopluto-badge-item {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  border-radius: 100px !important;
-  padding: 4px 10px 4px 8px !important;
-  border: 1px solid #374151 !important;
-  background: #1f2937 !important;
-}
-
-.autopluto-badge-item-label {
+.autopluto-right-metric-sub {
+  font-size: 10px !important;
   color: #6b7280 !important;
+  margin-top: 1px !important;
+}
+
+/* Discount badge */
+.autopluto-discount-badge {
+  display: inline-block !important;
+  background: #dcfce7 !important;
+  color: #059669 !important;
+  border: 1px solid #86efac !important;
+  border-radius: 100px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 1px 7px !important;
+  margin-left: 4px !important;
+  vertical-align: middle !important;
+}
+
+/* Safety risk bar */
+.autopluto-safety-bar-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.autopluto-safety-bar-label {
   font-size: 9px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.4px !important;
+  letter-spacing: 0.5px !important;
+  color: #9ca3af !important;
+}
+
+.autopluto-safety-bar-track {
+  height: 6px !important;
+  background: #e5e7eb !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.autopluto-safety-bar-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.5s ease !important;
+}
+
+.autopluto-safety-bar-fill--green  { background: #10b981 !important; }
+.autopluto-safety-bar-fill--yellow { background: #f59e0b !important; }
+.autopluto-safety-bar-fill--red    { background: #ef4444 !important; }
+.autopluto-safety-bar-fill--gray   { background: #d1d5db !important; }
+
+.autopluto-safety-bar-text {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  text-transform: capitalize !important;
+}
+
+/* ── Bid mini card (current bid) ─────────────────────────────── */
+.autopluto-bid-mini {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  padding: 7px 10px !important;
+}
+
+.autopluto-bid-mini-label {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  color: #9ca3af !important;
+  margin-bottom: 4px !important;
+}
+
+.autopluto-bid-mini-value {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #f59e0b !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
   white-space: nowrap !important;
 }
 
-.autopluto-badge-item-value {
-  color: #e5e7eb !important;
+.autopluto-bid-mini-value--none {
+  color: #d1d5db !important;
+  font-size: 15px !important;
+}
+
+/* ── Confidence legacy (used in old path) ────────────────────── */
+.autopluto-emp-conf {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  margin-top: auto !important;
+}
+
+.autopluto-emp-conf-row,
+.autopluto-emp-quality-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+.autopluto-emp-conf-key {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #6b7280 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 62px !important;
+}
+
+.autopluto-emp-conf-key--dim { color: #9ca3af !important; }
+
+.autopluto-emp-conf-meter {
+  flex: 1 !important;
+  height: 4px !important;
+  background: #e5e7eb !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+  max-width: 64px !important;
+}
+
+.autopluto-emp-conf-fill {
+  height: 100% !important;
+  border-radius: 2px !important;
+  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.autopluto-emp-conf-fill--green  { background: linear-gradient(90deg, #059669, #10b981) !important; }
+.autopluto-emp-conf-fill--yellow { background: linear-gradient(90deg, #d97706, #f59e0b) !important; }
+.autopluto-emp-conf-fill--red    { background: linear-gradient(90deg, #dc2626, #ef4444) !important; }
+.autopluto-emp-conf-fill--gray   { background: #d1d5db !important; }
+
+.autopluto-emp-conf-badge {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 100px !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-emp-conf-badge--green  { background: #dcfce7 !important; color: #059669 !important; border: 1px solid #86efac !important; }
+.autopluto-emp-conf-badge--yellow { background: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+.autopluto-emp-conf-badge--red    { background: #fee2e2 !important; color: #dc2626 !important; border: 1px solid #fca5a5 !important; }
+.autopluto-emp-conf-badge--gray   { background: #f3f4f6 !important; color: #6b7280 !important; border: 1px solid #e5e7eb !important; }
+
+.autopluto-emp-quality-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.1px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-emp-quality-badge--green  { background: #f0fdf4 !important; color: #059669 !important; border: 1px solid #bbf7d0 !important; }
+.autopluto-emp-quality-badge--yellow { background: #fffbeb !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+.autopluto-emp-quality-badge--red    { background: #fef2f2 !important; color: #dc2626 !important; border: 1px solid #fecaca !important; }
+.autopluto-emp-quality-badge--gray   { background: #f3f4f6 !important; color: #6b7280 !important; border: 1px solid #e5e7eb !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   C. DECISION INSIGHT BAR  (compact, secondary status)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-insight-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  border-left: 3px solid transparent !important;
+}
+
+.autopluto-insight-bar--good    { background: #f0fdf4 !important; border-left-color: #10b981 !important; border: 1px solid #bbf7d0 !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--caution { background: #fffbeb !important; border-left-color: #f59e0b !important; border: 1px solid #fde68a !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--danger  { background: #fef2f2 !important; border-left-color: #ef4444 !important; border: 1px solid #fecaca !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--neutral { background: #f9fafb !important; border-left-color: #9ca3af !important; border: 1px solid #e5e7eb !important; border-left-width: 3px !important; }
+
+.autopluto-insight-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-insight-bar--good    .autopluto-insight-dot { background: #10b981 !important; }
+.autopluto-insight-bar--caution .autopluto-insight-dot { background: #f59e0b !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-dot { background: #ef4444 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-dot { background: #9ca3af !important; }
+
+.autopluto-insight-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.autopluto-insight-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.autopluto-insight-bar--good    .autopluto-insight-label { color: #059669 !important; }
+.autopluto-insight-bar--caution .autopluto-insight-label { color: #d97706 !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-label { color: #dc2626 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-label { color: #6b7280 !important; }
+
+.autopluto-insight-meta {
+  font-size: 12px !important;
+  flex-shrink: 0 !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-insight-meta strong { font-weight: 800 !important; }
+
+.autopluto-insight-bar--good    .autopluto-insight-meta { color: #059669 !important; }
+.autopluto-insight-bar--caution .autopluto-insight-meta { color: #d97706 !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-meta { color: #dc2626 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-meta { color: #9ca3af !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   D. EXPECTED MARKET RANGE  (light card with blue range line)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-range-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 11px 14px !important;
+}
+
+.autopluto-range-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 8px !important;
+  gap: 8px !important;
+}
+
+.autopluto-range-card-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: #374151 !important;
+}
+
+.autopluto-range-spread-pill {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #2563eb !important;
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 100px !important;
+  padding: 2px 10px !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-range-endpoints {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  margin-bottom: 4px !important;
+}
+
+.autopluto-range-endpoint {}
+
+.autopluto-range-endpoint--high { text-align: right !important; }
+
+.autopluto-range-endpoint-lbl {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #9ca3af !important;
+  margin-bottom: 3px !important;
+}
+
+.autopluto-range-endpoint-val {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.6px !important;
+  line-height: 1 !important;
+  color: #111827 !important;
+}
+
+.autopluto-range-track-wrap {
+  position: relative !important;
+  padding-top: 14px !important;
+  padding-bottom: 16px !important;
+}
+
+.autopluto-range-track-v2 {
+  position: relative !important;
+  height: 10px !important;
+  background: #e5e7eb !important;
+  border-radius: 5px !important;
+  border: 1px solid #d1d5db !important;
+  overflow: visible !important;
+}
+
+.autopluto-range-track-fill-v2 {
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 5px !important;
+  background: linear-gradient(90deg, #93c5fd 0%, #60a5fa 40%, #3b82f6 55%, #60a5fa 70%, #93c5fd 100%) !important;
+  opacity: 0.7 !important;
+}
+
+.autopluto-range-track-low-cap,
+.autopluto-range-track-high-cap {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: 2px solid #ffffff !important;
+  z-index: 2 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
+}
+
+.autopluto-range-track-low-cap {
+  left: -1px !important;
+  background: #93c5fd !important;
+}
+
+.autopluto-range-track-high-cap {
+  right: -1px !important;
+  background: #3b82f6 !important;
+}
+
+/* EMP marker */
+.autopluto-range-emp-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 3 !important;
+  width: 18px !important;
+  height: 18px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-emp-dot {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  background: #2563eb !important;
+  border: 2.5px solid #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2), 0 2px 6px rgba(37,99,235,0.3) !important;
+}
+
+.autopluto-range-emp-label {
+  position: absolute !important;
+  top: calc(100% + 5px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #2563eb !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* RMB marker */
+.autopluto-range-rmb-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 3 !important;
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-rmb-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 0 2.5px rgba(16,185,129,0.2), 0 2px 4px rgba(16,185,129,0.25) !important;
+}
+
+.autopluto-range-rmb-label {
+  position: absolute !important;
+  bottom: calc(100% + 5px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #059669 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* BID marker */
+.autopluto-range-bid-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 4 !important;
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-bid-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #f59e0b !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 0 2.5px rgba(245,158,11,0.2), 0 2px 4px rgba(245,158,11,0.25) !important;
+}
+
+.autopluto-range-bid-label {
+  position: absolute !important;
+  top: calc(100% + 5px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #d97706 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* Legend */
+.autopluto-range-legend {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 8px !important;
+  margin-top: 2px !important;
+}
+
+.autopluto-range-legend--compact {
+  grid-template-columns: repeat(2, auto) !important;
+  justify-content: flex-start !important;
+  gap: 4px 20px !important;
+  border-top-color: #f1f5f9 !important;
+  padding-top: 8px !important;
+}
+
+.autopluto-range-legend-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+}
+
+.autopluto-range-legend-dot {
+  width: 9px !important;
+  height: 9px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  margin-top: 3px !important;
+}
+
+.autopluto-range-legend-dot--emp     { background: #2563eb !important; }
+.autopluto-range-legend-dot--rmb     { background: #10b981 !important; }
+.autopluto-range-legend-dot--current { background: #f59e0b !important; }
+
+.autopluto-range-legend-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+}
+
+.autopluto-range-legend-lbl {
+  font-size: 9px !important;
+  color: #9ca3af !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-range-legend-val {
+  font-size: 13px !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.3px !important;
+}
+
+.autopluto-range-legend-val--emp     { color: #2563eb !important; }
+.autopluto-range-legend-val--rmb     { color: #059669 !important; }
+.autopluto-range-legend-val--current { color: #d97706 !important; }
+
+/* Legacy range classes */
+.autopluto-range-viz { margin-bottom: 2px !important; }
+.autopluto-range-header { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px !important; margin-bottom: 10px !important; }
+.autopluto-range-label { font-size: 9px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; color: #2563eb !important; white-space: nowrap !important; flex-shrink: 0 !important; }
+.autopluto-range-value { font-size: 14px !important; font-weight: 800 !important; color: #111827 !important; letter-spacing: -0.3px !important; white-space: nowrap !important; }
+.autopluto-range-track { position: relative !important; height: 4px !important; background: #e5e7eb !important; border-radius: 2px !important; margin-bottom: 6px !important; }
+.autopluto-range-track-fill { position: absolute !important; inset: 0 !important; background: linear-gradient(90deg, #93c5fd 0%, #3b82f6 50%, #93c5fd 100%) !important; border-radius: 2px !important; opacity: 0.7 !important; }
+.autopluto-range-marker { position: absolute !important; top: 50% !important; transform: translate(-50%, -50%) !important; width: 10px !important; height: 10px !important; background: #2563eb !important; border: 2px solid #ffffff !important; border-radius: 50% !important; cursor: default !important; }
+.autopluto-range-track-labels { display: flex !important; justify-content: space-between !important; font-size: 9px !important; color: #9ca3af !important; font-weight: 500 !important; }
+.autopluto-range-bounds { display: flex !important; justify-content: space-between !important; align-items: flex-end !important; margin-top: 5px !important; margin-bottom: 8px !important; }
+.autopluto-range-bound { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+.autopluto-range-bound--high { align-items: flex-end !important; text-align: right !important; }
+.autopluto-range-bound-lbl { font-size: 8px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.6px !important; color: #9ca3af !important; }
+.autopluto-range-bound-val { font-size: 15px !important; font-weight: 800 !important; color: #111827 !important; letter-spacing: -0.5px !important; line-height: 1 !important; }
+.autopluto-range-simple { display: flex !important; gap: 20px !important; flex-wrap: wrap !important; }
+.autopluto-range-simple-item { display: flex !important; flex-direction: column !important; gap: 3px !important; }
+.autopluto-range-simple-lbl { font-size: 8px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.4px !important; color: #9ca3af !important; }
+.autopluto-range-simple-val { font-size: 15px !important; font-weight: 800 !important; color: #111827 !important; }
+.autopluto-range-simple-val--bid { color: #d97706 !important; }
+.autopluto-rm { position: absolute !important; top: 50% !important; transform: translate(-50%, -50%) !important; width: 16px !important; height: 16px !important; border-radius: 50% !important; border: 2px solid #ffffff !important; z-index: 2 !important; cursor: default !important; transition: transform 0.15s ease !important; }
+.autopluto-rm--emp { background: #2563eb !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.2) !important; }
+.autopluto-rm--rmb { background: #10b981 !important; }
+.autopluto-rm--current { background: #f59e0b !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   E. COMPARABLE VEHICLES  (chart + table)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-comps-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 11px 14px !important;
+}
+
+.autopluto-comps-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 8px !important;
+}
+
+.autopluto-comps-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: #374151 !important;
+}
+
+.autopluto-comps-count-badge {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 2px 8px !important;
+  border-radius: 100px !important;
+}
+
+.autopluto-comps-chart-wrap {
+  position: relative !important;
+  width: 100% !important;
+}
+
+.autopluto-comps-svg {
+  display: block !important;
+  width: 100% !important;
+  height: 165px !important;
+  overflow: visible !important;
+}
+
+/* SVG data points for light bg */
+.autopluto-comp-dot {
+  fill: #3b82f6 !important;
+  stroke: #ffffff !important;
+  stroke-width: 2 !important;
+  cursor: pointer !important;
+  transition: fill 0.15s ease, filter 0.15s ease !important;
+}
+
+.autopluto-comp-dot:hover {
+  fill: #1d4ed8 !important;
+  filter: drop-shadow(0 0 4px rgba(59,130,246,0.5)) !important;
+}
+
+/* Hover tooltip */
+.autopluto-comp-tooltip {
+  display: none !important;
+  position: absolute !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  min-width: 152px !important;
+  max-width: 210px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.autopluto-comp-tt-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  margin-bottom: 7px !important;
+  line-height: 1.3 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding-bottom: 6px !important;
+}
+
+.autopluto-comp-tt-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+
+.autopluto-comp-tt-row span {
+  font-size: 9px !important;
+  color: #9ca3af !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+
+.autopluto-comp-tt-row strong {
+  font-size: 11px !important;
+  color: #374151 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+/* Empty state */
+.autopluto-comps-empty {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  padding: 8px 0 4px !important;
+}
+
+.autopluto-comps-empty-icon {
+  font-size: 14px !important;
+  color: #9ca3af !important;
+  flex-shrink: 0 !important;
+  line-height: 1.5 !important;
+}
+
+.autopluto-comps-empty-text {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  line-height: 1.55 !important;
+}
+
+/* Comparable table */
+.autopluto-comp-table-wrap {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: 200px !important;
+  margin-top: 6px !important;
+  padding-top: 8px !important;
+  border-top: 1px solid #f1f5f9 !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.autopluto-comp-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: auto !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.autopluto-comp-th {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #9ca3af !important;
+  padding: 0 8px 5px !important;
+  text-align: left !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  white-space: nowrap !important;
+  position: sticky !important;
+  top: 0 !important;
+  background: #ffffff !important;
+  z-index: 1 !important;
+}
+
+.autopluto-comp-th:not(:first-child) { text-align: right !important; }
+
+.autopluto-comp-td {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  padding: 5px 8px !important;
+  border-bottom: 1px solid #f8fafc !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 120px !important;
+}
+
+.autopluto-comp-row:hover .autopluto-comp-td {
+  background: #f8fafc !important;
+}
+
+.autopluto-comp-td--num {
+  color: #9ca3af !important;
+  min-width: 24px !important;
+  text-align: left !important;
+}
+
+.autopluto-comp-td--vehicle {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  max-width: 140px !important;
+}
+
+.autopluto-comp-td--price {
+  text-align: right !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.autopluto-comp-td--mileage,
+.autopluto-comp-td--diff,
+.autopluto-comp-td--bid-diff,
+.autopluto-comp-td--score,
+.autopluto-comp-td--date { text-align: right !important; }
+
+.autopluto-comp-td--location { max-width: 80px !important; }
+
+.autopluto-comp-diff {
   font-size: 11px !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
 }
 
-.autopluto-badge-item--green  { border-color: #166534 !important; background: #052e16 !important; }
-.autopluto-badge-item--green  .autopluto-badge-item-value { color: #4ade80 !important; }
+.autopluto-comp-diff--neg { color: #059669 !important; }
+.autopluto-comp-diff--pos { color: #ef4444 !important; }
 
-.autopluto-badge-item--yellow { border-color: #92400e !important; background: #1c1500 !important; }
-.autopluto-badge-item--yellow .autopluto-badge-item-value { color: #fbbf24 !important; }
-
-.autopluto-badge-item--red    { border-color: #991b1b !important; background: #1f0a0a !important; }
-.autopluto-badge-item--red    .autopluto-badge-item-value { color: #f87171 !important; }
-
-.autopluto-badge-item--blue   { border-color: #1e40af !important; background: #0f1e3a !important; }
-.autopluto-badge-item--blue   .autopluto-badge-item-value { color: #93c5fd !important; }
-
-.autopluto-badge-item--gray   { border-color: #374151 !important; background: #1f2937 !important; }
-.autopluto-badge-item--gray   .autopluto-badge-item-value { color: #9ca3af !important; }
-
-/* ── Manual review warning box ───────────────────────────────── */
-.autopluto-manual-review-box {
-  background: #1a0c00 !important;
-  border: 1.5px solid #d97706 !important;
-  border-radius: 8px !important;
-  padding: 8px 12px !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 8px !important;
-  box-shadow: 0 0 0 1px rgba(217,119,6,0.12), inset 0 0 20px rgba(217,119,6,0.04) !important;
-}
-
-.autopluto-manual-review-icon {
-  font-size: 17px !important;
-  flex-shrink: 0 !important;
-  color: #f59e0b !important;
-  line-height: 1 !important;
-  margin-top: 1px !important;
-}
-
-.autopluto-manual-review-title {
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  color: #f59e0b !important;
-  letter-spacing: 0.1px !important;
-  line-height: 1.3 !important;
-}
-
-.autopluto-manual-review-sub {
+.autopluto-comp-score {
   font-size: 10px !important;
-  color: #fcd34d !important;
-  margin-top: 2px !important;
-  line-height: 1.4 !important;
-  opacity: 0.85 !important;
-}
-
-/* ── Warning banners ──────────────────────────────────────────── */
-.autopluto-warning-banner {
-  background: #1c1500 !important;
-  border: 1px solid #92400e !important;
-  border-radius: 6px !important;
-  padding: 8px 12px !important;
-  font-size: 10px !important;
-  color: #fde68a !important;
+  color: #6b7280 !important;
   font-weight: 600 !important;
-  line-height: 1.4 !important;
 }
 
-.autopluto-warning-banner + .autopluto-warning-banner {
-  margin-top: 0 !important;
+.autopluto-comp-na {
+  color: #d1d5db !important;
+  font-size: 10px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REASONS & WARNINGS SECTION  (visible pill groups)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-reasons-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+}
+
+.autopluto-reasons-header {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: #374151 !important;
+  margin-bottom: 7px !important;
+}
+
+.autopluto-reasons-group {
+  padding: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-reasons-group:last-child { margin-bottom: 0 !important; }
+
+.autopluto-reasons-group--warning {
+  border-color: #fde68a !important;
+  background: #fffbeb !important;
+}
+
+.autopluto-reasons-group--info {
+  border-color: #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.autopluto-reasons-group-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #9ca3af !important;
+  margin-bottom: 8px !important;
+}
+
+.autopluto-reasons-group--warning .autopluto-reasons-group-label { color: #d97706 !important; }
+
+.autopluto-reasons-pills {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.autopluto-reason-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 11px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-reason-pill--warning {
+  background: #fffbeb !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
+}
+
+.autopluto-reason-pill--info {
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   F. SUPPORTING RISK & QUALITY SIGNALS  (2x2 status grid)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-signals-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.autopluto-signal-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 10px 4px 8px !important;
+  border-radius: 100px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.autopluto-signal-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #9ca3af !important;
+}
+
+.autopluto-signal-val {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: capitalize !important;
+  color: #374151 !important;
+}
+
+.autopluto-signal-chip--green  { border-color: #bbf7d0 !important; background: #f0fdf4 !important; }
+.autopluto-signal-chip--green  .autopluto-signal-val { color: #059669 !important; }
+.autopluto-signal-chip--yellow { border-color: #fde68a !important; background: #fffbeb !important; }
+.autopluto-signal-chip--yellow .autopluto-signal-val { color: #d97706 !important; }
+.autopluto-signal-chip--red    { border-color: #fecaca !important; background: #fef2f2 !important; }
+.autopluto-signal-chip--red    .autopluto-signal-val { color: #dc2626 !important; }
+.autopluto-signal-chip--blue   { border-color: #bfdbfe !important; background: #eff6ff !important; }
+.autopluto-signal-chip--blue   .autopluto-signal-val { color: #2563eb !important; }
+.autopluto-signal-chip--gray   { border-color: #e5e7eb !important; background: #f9fafb !important; }
+.autopluto-signal-chip--gray   .autopluto-signal-val { color: #6b7280 !important; }
+
+/* Status grid */
+.autopluto-status-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.autopluto-status-item {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.autopluto-status-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #9ca3af !important;
+}
+
+.autopluto-status-value-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.autopluto-status-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-status-value {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: capitalize !important;
+  color: #111827 !important;
+}
+
+.autopluto-status-item--green  { border-color: #bbf7d0 !important; background: #f0fdf4 !important; }
+.autopluto-status-item--green  .autopluto-status-label { color: #059669 !important; }
+.autopluto-status-item--green  .autopluto-status-dot   { background: #10b981 !important; }
+.autopluto-status-item--green  .autopluto-status-value { color: #059669 !important; }
+
+.autopluto-status-item--yellow { border-color: #fde68a !important; background: #fffbeb !important; }
+.autopluto-status-item--yellow .autopluto-status-label { color: #d97706 !important; }
+.autopluto-status-item--yellow .autopluto-status-dot   { background: #f59e0b !important; }
+.autopluto-status-item--yellow .autopluto-status-value { color: #92400e !important; }
+
+.autopluto-status-item--red    { border-color: #fecaca !important; background: #fef2f2 !important; }
+.autopluto-status-item--red    .autopluto-status-label { color: #dc2626 !important; }
+.autopluto-status-item--red    .autopluto-status-dot   { background: #ef4444 !important; }
+.autopluto-status-item--red    .autopluto-status-value { color: #dc2626 !important; }
+
+.autopluto-status-item--blue   { border-color: #bfdbfe !important; background: #eff6ff !important; }
+.autopluto-status-item--blue   .autopluto-status-label { color: #2563eb !important; }
+.autopluto-status-item--blue   .autopluto-status-dot   { background: #60a5fa !important; }
+.autopluto-status-item--blue   .autopluto-status-value { color: #1d4ed8 !important; }
+
+.autopluto-status-item--gray   { border-color: #e5e7eb !important; background: #f9fafb !important; }
+.autopluto-status-item--gray   .autopluto-status-label { color: #9ca3af !important; }
+.autopluto-status-item--gray   .autopluto-status-dot   { background: #9ca3af !important; }
+.autopluto-status-item--gray   .autopluto-status-value { color: #6b7280 !important; }
+
+/* ── Collapsibles wrapper ─────────────────────────────────────── */
+.autopluto-collapsibles {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
    COLLAPSIBLE SECTIONS  (<details> / <summary>)
-   All collapsed by default; expand on user click.
    ═══════════════════════════════════════════════════════════════ */
 
 .autopluto-details {
-  background: #0d1117 !important;
-  border: 1px solid #1f2937 !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   overflow: hidden !important;
 }
 
 .autopluto-details--warning {
-  border-color: rgba(146,64,14,0.65) !important;
+  border-color: #fde68a !important;
 }
 
 .autopluto-details-summary {
   list-style: none !important;
   cursor: pointer !important;
-  padding: 9px 12px !important;
+  padding: 10px 14px !important;
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
@@ -642,12 +1644,12 @@
 .autopluto-details-summary::marker                 { display: none !important; }
 
 .autopluto-details-summary:hover {
-  background: rgba(255,255,255,0.025) !important;
+  background: #f8fafc !important;
 }
 
 .autopluto-details-title {
   flex: 1 !important;
-  font-size: 9px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   letter-spacing: 0.5px !important;
   text-transform: uppercase !important;
@@ -660,14 +1662,14 @@
 
 .autopluto-details-count {
   font-size: 9px !important;
-  color: #4b5563 !important;
+  color: #9ca3af !important;
   font-weight: 500 !important;
   flex-shrink: 0 !important;
 }
 
 .autopluto-details-arrow {
   font-size: 9px !important;
-  color: #4b5563 !important;
+  color: #9ca3af !important;
   display: inline-block !important;
   transition: transform 0.2s ease !important;
   flex-shrink: 0 !important;
@@ -678,13 +1680,13 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 }
 
 .autopluto-details-body {
-  padding: 4px 12px 12px !important;
-  border-top: 1px solid #1a1f2e !important;
+  padding: 4px 14px 14px !important;
+  border-top: 1px solid #f1f5f9 !important;
   font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
 .autopluto-details--warning .autopluto-details-body {
-  border-top-color: rgba(146,64,14,0.4) !important;
+  border-top-color: #fde68a !important;
 }
 
 .autopluto-details-list {
@@ -697,8 +1699,8 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 }
 
 .autopluto-details-list li {
-  font-size: 10px !important;
-  color: #9ca3af !important;
+  font-size: 11px !important;
+  color: #6b7280 !important;
   display: flex !important;
   align-items: flex-start !important;
   gap: 6px !important;
@@ -707,20 +1709,20 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 .autopluto-details-list li::before {
   content: '•' !important;
-  color: #3b82f6 !important;
+  color: #9ca3af !important;
   font-size: 13px !important;
   flex-shrink: 0 !important;
   line-height: 1.15 !important;
 }
 
 .autopluto-details--warning .autopluto-details-list li::before {
-  color: #d97706 !important;
+  color: #f59e0b !important;
 }
 
-.autopluto-details-list--muted li { color: #6b7280 !important; }
-.autopluto-details-list--muted li::before { color: #374151 !important; }
+.autopluto-details-list--muted li { color: #9ca3af !important; }
+.autopluto-details-list--muted li::before { color: #d1d5db !important; }
 
-/* ── Input coverage grid (inside collapsible body) ────────────── */
+/* ── Input coverage grid ─────────────────────────────────────── */
 .autopluto-data-quality-grid {
   display: grid !important;
   grid-template-columns: repeat(4, 1fr) !important;
@@ -743,20 +1745,20 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   flex-shrink: 0 !important;
 }
 
-.autopluto-data-field--ok   { color: #6ee7b7 !important; }
-.autopluto-data-field--miss { color: #4b5563 !important; }
+.autopluto-data-field--ok   { color: #059669 !important; }
+.autopluto-data-field--miss { color: #9ca3af !important; }
 
-.autopluto-data-field--ok   .autopluto-data-field-dot { background: #22c55e !important; }
-.autopluto-data-field--miss .autopluto-data-field-dot { background: #374151 !important; }
+.autopluto-data-field--ok   .autopluto-data-field-dot { background: #10b981 !important; }
+.autopluto-data-field--miss .autopluto-data-field-dot { background: #d1d5db !important; }
 
 .autopluto-data-missing-note {
   margin-top: 7px !important;
   font-size: 9px !important;
-  color: #6b7280 !important;
+  color: #9ca3af !important;
   line-height: 1.4 !important;
 }
 
-/* ── Adjustment details grid (inside collapsible body) ────────── */
+/* ── Adjustment details grid ─────────────────────────────────── */
 .autopluto-adjust-grid {
   display: grid !important;
   grid-template-columns: repeat(2, 1fr) !important;
@@ -775,13 +1777,13 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.4px !important;
-  color: #4b5563 !important;
+  color: #9ca3af !important;
 }
 
 .autopluto-adjust-value {
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
-  color: #d1d5db !important;
+  color: #111827 !important;
 }
 
 .autopluto-adjust-reasons-title {
@@ -789,17 +1791,18 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
-  color: #4b5563 !important;
+  color: #9ca3af !important;
   margin-bottom: 4px !important;
 }
 
-/* ── Debug pre (inside collapsible) ─────────────────────────── */
+/* ── Debug pre ───────────────────────────────────────────────── */
 .autopluto-debug-pre {
-  background: #000 !important;
-  color: #80cbc4 !important;
-  border-radius: 4px !important;
-  padding: 8px !important;
-  font-size: 10px !important;
+  background: #f8fafc !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  padding: 10px !important;
+  font-size: 11px !important;
   font-family: 'Consolas', 'Courier New', monospace !important;
   max-height: 200px !important;
   overflow-y: auto !important;
@@ -811,65 +1814,79 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 /* ── Card footer ─────────────────────────────────────────────── */
 .autopluto-card-footer {
-  padding: 10px 16px !important;
-  background: #0d1117 !important;
-  border-top: 1px solid #1a1f2e !important;
+  flex-shrink: 0 !important;
+  padding: 7px 14px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e5e7eb !important;
   border-radius: 0 0 14px 14px !important;
   display: flex !important;
   gap: 6px !important;
-  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+.autopluto-footer-left {
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+  flex: 1 !important;
+}
+
+.autopluto-footer-right {
+  display: flex !important;
+  gap: 6px !important;
   align-items: center !important;
 }
 
 .autopluto-footer-btn {
   all: initial !important;
   font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
   padding: 5px 12px !important;
   border-radius: 6px !important;
   cursor: pointer !important;
   border: 1px solid transparent !important;
-  letter-spacing: 0.2px !important;
+  letter-spacing: 0.1px !important;
   white-space: nowrap !important;
   line-height: 1.4 !important;
   box-sizing: border-box !important;
+  transition: background 0.12s, color 0.12s, border-color 0.12s !important;
 }
 
 .autopluto-footer-btn--primary  { background: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important; }
 .autopluto-footer-btn--primary:hover { background: #1d4ed8 !important; }
 
-.autopluto-footer-btn--secondary { background: #1f2937 !important; color: #d1d5db !important; border-color: #374151 !important; }
-.autopluto-footer-btn--secondary:hover { background: #374151 !important; color: #f9fafb !important; }
+.autopluto-footer-btn--secondary { background: #f1f5f9 !important; color: #374151 !important; border-color: #e2e8f0 !important; }
+.autopluto-footer-btn--secondary:hover { background: #e2e8f0 !important; color: #111827 !important; }
 
-.autopluto-footer-btn--ghost { background: transparent !important; color: #4b5563 !important; border-color: transparent !important; }
-.autopluto-footer-btn--ghost:hover { color: #9ca3af !important; background: #1f2937 !important; }
+.autopluto-footer-btn--ghost { background: transparent !important; color: #6b7280 !important; border-color: transparent !important; }
+.autopluto-footer-btn--ghost:hover { color: #374151 !important; background: #f1f5f9 !important; }
 
-/* Class aliases — do not add styles here, kept for selector targeting */
+/* Class aliases */
 .autopluto-refresh-btn      { }
 .autopluto-copy-result-btn  { }
 .autopluto-copy-payload-btn { }
 
 .autopluto-footer-btn--close {
   background: transparent !important;
-  color: #ef4444 !important;
-  border-color: rgba(239,68,68,0.3) !important;
-  margin-left: auto !important;
+  color: #6b7280 !important;
+  border-color: #e5e7eb !important;
 }
+
 .autopluto-footer-btn--close:hover {
-  background: rgba(239,68,68,0.1) !important;
-  color: #f87171 !important;
-  border-color: rgba(239,68,68,0.5) !important;
+  background: #fef2f2 !important;
+  color: #ef4444 !important;
+  border-color: #fecaca !important;
 }
 
 /* ── Error card ──────────────────────────────────────────────── */
 .autopluto-card-error {
-  border-color: #991b1b !important;
+  border-color: #fecaca !important;
 }
 
 .autopluto-error-msg {
-  font-size: 11px !important;
-  color: #fca5a5 !important;
+  font-size: 12px !important;
+  color: #dc2626 !important;
   margin: 0 !important;
   padding: 4px 0 !important;
   line-height: 1.5 !important;
@@ -877,10 +1894,10 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 .autopluto-validation-errors {
   margin: 8px 0 0 !important;
-  padding: 0 0 0 14px !important;
+  padding: 0 0 0 16px !important;
   list-style: disc !important;
-  font-size: 10px !important;
-  color: #fca5a5 !important;
+  font-size: 11px !important;
+  color: #dc2626 !important;
   line-height: 1.6 !important;
 }
 
@@ -890,18 +1907,18 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
 
 /* ── Loading skeleton ────────────────────────────────────────── */
 .autopluto-skeleton-status {
-  font-size: 11px !important;
-  color: #6b7280 !important;
-  margin-bottom: 4px !important;
+  font-size: 13px !important;
+  color: #9ca3af !important;
+  margin-bottom: 6px !important;
   font-style: italic !important;
 }
 
 .autopluto-skeleton-bar {
-  height: 14px !important;
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%) !important;
+  height: 16px !important;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%) !important;
   background-size: 200% 100% !important;
-  border-radius: 4px !important;
-  margin-bottom: 8px !important;
+  border-radius: 6px !important;
+  margin-bottom: 10px !important;
   animation: autopluto-shimmer 1.4s ease-in-out infinite !important;
 }
 
@@ -913,14 +1930,104 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   100% { background-position: -200% 0; }
 }
 
+/* ── Warning banner (inline) ─────────────────────────────────── */
+.autopluto-warning-banner {
+  background: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 11px !important;
+  color: #92400e !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+/* ── Legacy manual review box ────────────────────────────────── */
+.autopluto-manual-review-box {
+  background: #fffbeb !important;
+  border: 1.5px solid #fde68a !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+}
+
+.autopluto-manual-review-icon {
+  font-size: 17px !important;
+  flex-shrink: 0 !important;
+  color: #d97706 !important;
+  line-height: 1 !important;
+  margin-top: 1px !important;
+}
+
+.autopluto-manual-review-title {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #92400e !important;
+  letter-spacing: 0.1px !important;
+  line-height: 1.3 !important;
+}
+
+.autopluto-manual-review-sub {
+  font-size: 10px !important;
+  color: #d97706 !important;
+  margin-top: 2px !important;
+  line-height: 1.4 !important;
+}
+
 /* ── Divider ─────────────────────────────────────────────────── */
 .autopluto-divider {
   height: 1px !important;
-  background: #1f2937 !important;
+  background: #f1f5f9 !important;
   margin: 2px 0 !important;
 }
 
-/* ── Legacy badge styles (backwards compatibility) ───────────── */
+/* ── Badge item pills ────────────────────────────────────────── */
+.autopluto-badges-section {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.autopluto-badge-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: 100px !important;
+  padding: 4px 10px 4px 8px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f1f5f9 !important;
+}
+
+.autopluto-badge-item-label {
+  color: #9ca3af !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-item-value {
+  color: #111827 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-item--green  { border-color: #bbf7d0 !important; background: #f0fdf4 !important; }
+.autopluto-badge-item--green  .autopluto-badge-item-value { color: #059669 !important; }
+.autopluto-badge-item--yellow { border-color: #fde68a !important; background: #fffbeb !important; }
+.autopluto-badge-item--yellow .autopluto-badge-item-value { color: #d97706 !important; }
+.autopluto-badge-item--red    { border-color: #fecaca !important; background: #fef2f2 !important; }
+.autopluto-badge-item--red    .autopluto-badge-item-value { color: #dc2626 !important; }
+.autopluto-badge-item--blue   { border-color: #bfdbfe !important; background: #eff6ff !important; }
+.autopluto-badge-item--blue   .autopluto-badge-item-value { color: #2563eb !important; }
+.autopluto-badge-item--gray   { border-color: #e5e7eb !important; background: #f1f5f9 !important; }
+.autopluto-badge-item--gray   .autopluto-badge-item-value { color: #6b7280 !important; }
+
+/* ── Legacy badge styles ─────────────────────────────────────── */
 .autopluto-badge {
   display: inline-block !important;
   padding: 2px 8px !important;
@@ -931,18 +2038,33 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   border: 1px solid transparent !important;
 }
 
-.autopluto-badge-green   { background: #052e16 !important; color: #4ade80 !important; border-color: #166534 !important; }
-.autopluto-badge-yellow  { background: #1c1500 !important; color: #fbbf24 !important; border-color: #92400e !important; }
-.autopluto-badge-red     { background: #1f0a0a !important; color: #f87171 !important; border-color: #991b1b !important; }
-.autopluto-badge-gray    { background: #1f2937 !important; color: #9ca3af !important; border-color: #374151 !important; }
-.autopluto-badge-safe    { background: #052e16 !important; color: #4ade80 !important; border-color: #166534 !important; }
-.autopluto-badge-warning { background: #1c1500 !important; color: #fbbf24 !important; border-color: #92400e !important; }
-.autopluto-badge-danger  { background: #1f0a0a !important; color: #f87171 !important; border-color: #991b1b !important; }
+.autopluto-badge-green   { background: #f0fdf4 !important; color: #059669 !important; border-color: #bbf7d0 !important; }
+.autopluto-badge-yellow  { background: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
+.autopluto-badge-red     { background: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; }
+.autopluto-badge-gray    { background: #f1f5f9 !important; color: #6b7280 !important; border-color: #e5e7eb !important; }
+.autopluto-badge-safe    { background: #f0fdf4 !important; color: #059669 !important; border-color: #bbf7d0 !important; }
+.autopluto-badge-warning { background: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
+.autopluto-badge-danger  { background: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; }
 
-/* ── Legacy collapsible (kept in case any path still hits it) ── */
+/* ── Calibration badge ───────────────────────────────────────── */
+.autopluto-badge-calib {
+  display: inline-block !important;
+  background: #f5f3ff !important;
+  color: #7c3aed !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  letter-spacing: 0.4px !important;
+  border: 1px solid #ddd6fe !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  white-space: nowrap !important;
+}
+
+/* ── Legacy debug panel ──────────────────────────────────────── */
 .autopluto-debug-panel {
-  background: #0d1117 !important;
-  border: 1px solid #1f2937 !important;
+  background: #f8fafc !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 8px !important;
   overflow: hidden !important;
 }
@@ -965,27 +2087,12 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   letter-spacing: 0.2px !important;
 }
 
-.autopluto-debug-toggle:hover { color: #9ca3af !important; }
+.autopluto-debug-toggle:hover { color: #374151 !important; }
 
 .autopluto-debug-content { display: none !important; padding: 0 12px 12px !important; }
 .autopluto-debug-content.autopluto-debug-open { display: block !important; }
 
-/* ── Calibration badge (legacy) ──────────────────────────────── */
-.autopluto-badge-calib {
-  display: inline-block !important;
-  background: rgba(99,102,241,0.12) !important;
-  color: rgba(165,180,252,0.85) !important;
-  font-size: 9px !important;
-  font-weight: 600 !important;
-  padding: 2px 7px !important;
-  border-radius: 100px !important;
-  letter-spacing: 0.4px !important;
-  border: 1px solid rgba(99,102,241,0.28) !important;
-  font-family: 'Consolas', 'Courier New', monospace !important;
-  white-space: nowrap !important;
-}
-
-/* ── Debug modal (standalone) ────────────────────────────────── */
+/* ── Debug modal ─────────────────────────────────────────────── */
 .autopluto-debug-modal {
   position: fixed !important;
   top: 50% !important;
@@ -994,11 +2101,11 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   z-index: 99999 !important;
   width: 520px !important;
   max-width: 95vw !important;
-  background: #0d1117 !important;
-  border: 1px solid #374151 !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 10px !important;
-  box-shadow: 0 8px 40px rgba(0,0,0,.7) !important;
-  color: #e8eaed !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15) !important;
+  color: #111827 !important;
   overflow: hidden !important;
 }
 
@@ -1009,19 +2116,19 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   justify-content: space-between !important;
   align-items: center !important;
   margin-bottom: 12px !important;
-  color: #e8eaed !important;
+  color: #111827 !important;
   font-size: 13px !important;
   font-weight: 700 !important;
 }
 
 #autopluto-debug-close {
   all: initial !important;
-  color: #6b7280 !important;
+  color: #9ca3af !important;
   cursor: pointer !important;
   font-size: 16px !important;
 }
 
-#autopluto-debug-close:hover { color: #9ca3af !important; }
+#autopluto-debug-close:hover { color: #374151 !important; }
 
 #autopluto-debug-copy {
   all: initial !important;
@@ -1035,855 +2142,6 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   font-weight: 600 !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   PREMIUM REDESIGN  v8 — complete component system
-   EMP is the hero. Confidence tightly coupled. Comparables chart.
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── Card body ────────────────────────────────────────────────── */
-.autopluto-card-body {
-  padding: 10px 14px !important;
-  gap: 8px !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   B. PRIMARY INTELLIGENCE SECTION
-   Left hero (EMP + confidence) + Right stack (RMB + Current Bid)
-   ═══════════════════════════════════════════════════════════════ */
-
-.autopluto-primary-intel {
-  display: flex !important;
-  gap: 10px !important;
-  align-items: stretch !important;
-}
-
-/* ── EMP Hero Card (dominant, ~58% width) ─────────────────────── */
-.autopluto-emp-hero {
-  flex: 1 1 58% !important;
-  background: linear-gradient(145deg, #080f1e 0%, #0d1e3a 55%, #0f2348 100%) !important;
-  border: 1.5px solid #243c5f !important;
-  border-radius: 12px !important;
-  padding: 12px 14px 10px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-width: 0 !important;
-  box-shadow: 0 0 0 1px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-}
-
-.autopluto-emp-hero-label {
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1px !important;
-  color: #60a5fa !important;
-  margin-bottom: 6px !important;
-}
-
-.autopluto-emp-hero-value {
-  font-size: 28px !important;
-  font-weight: 900 !important;
-  color: #e0ecff !important;
-  letter-spacing: -1.5px !important;
-  line-height: 1 !important;
-  margin-bottom: 10px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  text-shadow: 0 0 32px rgba(96,165,250,0.22) !important;
-}
-
-/* Confidence + Quality block inside EMP hero — column layout */
-.autopluto-emp-conf {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 5px !important;
-  margin-top: auto !important;
-}
-
-/* Each row: label + meter + badge on one line */
-.autopluto-emp-conf-row,
-.autopluto-emp-quality-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-}
-
-/* "Confidence" / "Quality" key labels */
-.autopluto-emp-conf-key {
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.6px !important;
-  color: #60a5fa !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  min-width: 62px !important;
-}
-
-/* Dim variant for "Quality" label (secondary) */
-.autopluto-emp-conf-key--dim {
-  color: #93a8c4 !important;
-}
-
-.autopluto-emp-conf-meter {
-  flex: 1 !important;
-  height: 4px !important;
-  background: rgba(30,58,95,0.9) !important;
-  border-radius: 2px !important;
-  overflow: hidden !important;
-  max-width: 64px !important;
-}
-
-.autopluto-emp-conf-fill {
-  height: 100% !important;
-  border-radius: 2px !important;
-  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-.autopluto-emp-conf-fill--green  { background: linear-gradient(90deg, #059669, #10b981) !important; }
-.autopluto-emp-conf-fill--yellow { background: linear-gradient(90deg, #d97706, #f59e0b) !important; }
-.autopluto-emp-conf-fill--red    { background: linear-gradient(90deg, #dc2626, #ef4444) !important; }
-.autopluto-emp-conf-fill--gray   { background: #374151 !important; }
-
-.autopluto-emp-conf-badge {
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  padding: 2px 8px !important;
-  border-radius: 100px !important;
-  text-transform: capitalize !important;
-  letter-spacing: 0.2px !important;
-  white-space: nowrap !important;
-}
-.autopluto-emp-conf-badge--green  { background: rgba(16,185,129,0.1)  !important; color: #10b981 !important; border: 1px solid rgba(16,185,129,0.24) !important; }
-.autopluto-emp-conf-badge--yellow { background: rgba(245,158,11,0.1)  !important; color: #f59e0b !important; border: 1px solid rgba(245,158,11,0.24) !important; }
-.autopluto-emp-conf-badge--red    { background: rgba(239,68,68,0.1)   !important; color: #ef4444 !important; border: 1px solid rgba(239,68,68,0.24)  !important; }
-.autopluto-emp-conf-badge--gray   { background: rgba(107,114,128,0.08)!important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.18)!important; }
-
-/* Quality badge — visually secondary (smaller, dimmer) */
-.autopluto-emp-quality-badge {
-  font-size: 9px !important;
-  font-weight: 600 !important;
-  padding: 2px 7px !important;
-  border-radius: 100px !important;
-  text-transform: capitalize !important;
-  letter-spacing: 0.1px !important;
-  white-space: nowrap !important;
-}
-.autopluto-emp-quality-badge--green  { background: rgba(16,185,129,0.07)  !important; color: #6ee7b7 !important; border: 1px solid rgba(16,185,129,0.18) !important; }
-.autopluto-emp-quality-badge--yellow { background: rgba(245,158,11,0.07)  !important; color: #fcd34d !important; border: 1px solid rgba(245,158,11,0.18) !important; }
-.autopluto-emp-quality-badge--red    { background: rgba(239,68,68,0.07)   !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.18)  !important; }
-.autopluto-emp-quality-badge--gray   { background: rgba(107,114,128,0.05) !important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.15)!important; }
-
-/* ── Right stack (~42% width) ─────────────────────────────────── */
-.autopluto-right-stack {
-  flex: 0 0 42% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  min-width: 0 !important;
-}
-
-/* RMB mini card */
-.autopluto-rmb-mini {
-  flex: 1 !important;
-  background: #051a0e !important;
-  border: 1px solid #0a6840 !important;
-  border-radius: 10px !important;
-  padding: 10px 12px !important;
-  box-shadow: 0 0 0 1px rgba(16,185,129,0.08), inset 0 1px 0 rgba(255,255,255,0.03) !important;
-}
-.autopluto-rmb-mini-label {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.8px !important;
-  color: #34d399 !important;
-  margin-bottom: 4px !important;
-}
-.autopluto-rmb-mini-value {
-  font-size: 17px !important;
-  font-weight: 800 !important;
-  color: #6ee7b7 !important;
-  letter-spacing: -0.5px !important;
-  line-height: 1.1 !important;
-  white-space: nowrap !important;
-}
-.autopluto-rmb-mini-sub {
-  font-size: 8px !important;
-  color: rgba(110,231,183,0.5) !important;
-  margin-top: 2px !important;
-  font-weight: 500 !important;
-}
-
-/* Current Bid mini card */
-.autopluto-bid-mini {
-  flex: 1 !important;
-  background: #0b1020 !important;
-  border: 1px solid #232e42 !important;
-  border-radius: 10px !important;
-  padding: 10px 12px !important;
-}
-.autopluto-bid-mini-label {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.8px !important;
-  color: #6b7280 !important;
-  margin-bottom: 4px !important;
-}
-.autopluto-bid-mini-value {
-  font-size: 17px !important;
-  font-weight: 800 !important;
-  color: #f59e0b !important;
-  letter-spacing: -0.5px !important;
-  line-height: 1.1 !important;
-  white-space: nowrap !important;
-}
-.autopluto-bid-mini-value--none {
-  color: #374151 !important;
-  font-size: 15px !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   C. DECISION INSIGHT BAR  (compact, secondary status)
-   ═══════════════════════════════════════════════════════════════ */
-
-.autopluto-insight-bar {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 7px 11px !important;
-  border-radius: 8px !important;
-  border-left: 3px solid transparent !important;
-}
-.autopluto-insight-bar--good    { background: rgba(5,46,22,0.8) !important;   border-left-color: #22c55e !important; border: 1px solid rgba(22,101,52,0.5) !important; border-left-width: 3px !important; }
-.autopluto-insight-bar--caution { background: rgba(28,21,0,0.8) !important;   border-left-color: #f59e0b !important; border: 1px solid rgba(120,53,15,0.5) !important; border-left-width: 3px !important; }
-.autopluto-insight-bar--danger  { background: rgba(32,11,11,0.8) !important;  border-left-color: #ef4444 !important; border: 1px solid rgba(127,29,29,0.5) !important; border-left-width: 3px !important; }
-.autopluto-insight-bar--neutral { background: rgba(12,17,28,0.85) !important; border-left-color: #4b5563 !important; border: 1px solid rgba(55,65,81,0.5)  !important; border-left-width: 3px !important; }
-
-.autopluto-insight-dot {
-  width: 7px !important;
-  height: 7px !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
-}
-.autopluto-insight-bar--good    .autopluto-insight-dot { background: #22c55e !important; }
-.autopluto-insight-bar--caution .autopluto-insight-dot { background: #f59e0b !important; }
-.autopluto-insight-bar--danger  .autopluto-insight-dot { background: #ef4444 !important; }
-.autopluto-insight-bar--neutral .autopluto-insight-dot { background: #374151 !important; }
-
-.autopluto-insight-content {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  flex: 1 !important;
-  gap: 8px !important;
-  min-width: 0 !important;
-}
-.autopluto-insight-label {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  flex: 1 !important;
-  min-width: 0 !important;
-}
-.autopluto-insight-bar--good    .autopluto-insight-label { color: #86efac !important; }
-.autopluto-insight-bar--caution .autopluto-insight-label { color: #fde68a !important; }
-.autopluto-insight-bar--danger  .autopluto-insight-label { color: #fca5a5 !important; }
-.autopluto-insight-bar--neutral .autopluto-insight-label { color: #6b7280 !important; }
-
-.autopluto-insight-meta {
-  font-size: 11px !important;
-  flex-shrink: 0 !important;
-  font-weight: 500 !important;
-  white-space: nowrap !important;
-}
-.autopluto-insight-meta strong { font-weight: 800 !important; }
-.autopluto-insight-bar--good    .autopluto-insight-meta { color: #4ade80 !important; }
-.autopluto-insight-bar--caution .autopluto-insight-meta { color: #fbbf24 !important; }
-.autopluto-insight-bar--danger  .autopluto-insight-meta { color: #f87171 !important; }
-.autopluto-insight-bar--neutral .autopluto-insight-meta { color: #4b5563 !important; }
-
-/* ═══════════════════════════════════════════════════════════════
-   D. EXPECTED MARKET RANGE  (premium range rail v2)
-   ═══════════════════════════════════════════════════════════════ */
-
-.autopluto-range-card {
-  background: linear-gradient(145deg, #060d1a 0%, #091422 100%) !important;
-  border: 1px solid #1e3a5a !important;
-  border-radius: 12px !important;
-  padding: 12px 14px 14px !important;
-  box-shadow: 0 0 0 1px rgba(59,130,246,0.06), inset 0 1px 0 rgba(255,255,255,0.04) !important;
-}
-
-/* Header row: title left, spread pill right */
-.autopluto-range-card-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 12px !important;
-  gap: 8px !important;
-}
-
-.autopluto-range-card-title {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.8px !important;
-  color: #60a5fa !important;
-}
-
-.autopluto-range-spread-pill {
-  font-size: 9px !important;
-  font-weight: 700 !important;
-  color: #93c5fd !important;
-  background: rgba(59,130,246,0.1) !important;
-  border: 1px solid rgba(59,130,246,0.22) !important;
-  border-radius: 100px !important;
-  padding: 2px 9px !important;
-  letter-spacing: 0.2px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-}
-
-/* Endpoint values row (Low left / High right) above the track */
-.autopluto-range-endpoints {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: flex-end !important;
-  margin-bottom: 6px !important;
-}
-
-.autopluto-range-endpoint {}
-
-.autopluto-range-endpoint--high {
-  text-align: right !important;
-}
-
-.autopluto-range-endpoint-lbl {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.6px !important;
-  color: #374151 !important;
-  margin-bottom: 2px !important;
-}
-
-.autopluto-range-endpoint--low  .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
-.autopluto-range-endpoint--high .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
-
-.autopluto-range-endpoint-val {
-  font-size: 16px !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.6px !important;
-  line-height: 1 !important;
-}
-
-.autopluto-range-endpoint--low  .autopluto-range-endpoint-val { color: #7dd3fc !important; }
-.autopluto-range-endpoint--high .autopluto-range-endpoint-val { color: #93c5fd !important; }
-
-/* Track wrapper — relative so the EMP marker can be absolutely positioned */
-.autopluto-range-track-wrap {
-  position: relative !important;
-  padding-bottom: 20px !important; /* space for the EMP label below */
-}
-
-/* The actual track bar */
-.autopluto-range-track-v2 {
-  position: relative !important;
-  height: 10px !important;
-  background: #0a1628 !important;
-  border-radius: 5px !important;
-  border: 1px solid #1a3354 !important;
-  overflow: visible !important;
-}
-
-/* Gradient fill that spans the full track */
-.autopluto-range-track-fill-v2 {
-  position: absolute !important;
-  inset: 0 !important;
-  border-radius: 5px !important;
-  background: linear-gradient(90deg,
-    #1a3d78 0%,
-    #1d4ed8 20%,
-    #3b82f6 45%,
-    #60a5fa 55%,
-    #3b82f6 75%,
-    #1d4ed8 88%,
-    #1a3d78 100%) !important;
-  opacity: 0.5 !important;
-}
-
-/* Round end-caps on the track */
-.autopluto-range-track-low-cap,
-.autopluto-range-track-high-cap {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 50% !important;
-  border: 2px solid #0d1e38 !important;
-  z-index: 2 !important;
-}
-
-.autopluto-range-track-low-cap {
-  left: -1px !important;
-  background: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.35), 0 0 10px rgba(37,99,235,0.4) !important;
-}
-
-.autopluto-range-track-high-cap {
-  right: -1px !important;
-  background: #60a5fa !important;
-  box-shadow: 0 0 0 2px rgba(96,165,250,0.35), 0 0 10px rgba(96,165,250,0.4) !important;
-}
-
-/* EMP marker — size matches the dot exactly so translate(-50%,-50%) centers the dot on the track */
-.autopluto-range-emp-marker {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 3 !important;
-  width: 18px !important;
-  height: 18px !important;
-  pointer-events: none !important;
-}
-
-.autopluto-range-emp-dot {
-  width: 18px !important;
-  height: 18px !important;
-  border-radius: 50% !important;
-  background: radial-gradient(circle at 38% 36%, #93c5fd, #3b82f6) !important;
-  border: 2.5px solid #070e1c !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 0 16px rgba(59,130,246,0.7) !important;
-}
-
-/* EMP label — absolutely below the dot, does not affect marker height */
-.autopluto-range-emp-label {
-  position: absolute !important;
-  top: calc(100% + 4px) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  font-size: 8px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #60a5fa !important;
-  white-space: nowrap !important;
-  line-height: 1 !important;
-}
-
-/* Current Bid marker — size matches the dot exactly */
-.autopluto-range-bid-marker {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 4 !important;
-  width: 14px !important;
-  height: 14px !important;
-  pointer-events: none !important;
-}
-
-.autopluto-range-bid-dot {
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 50% !important;
-  background: radial-gradient(circle at 38% 36%, #fde68a, #f59e0b) !important;
-  border: 2px solid #070e1c !important;
-  box-shadow: 0 0 0 2.5px rgba(245,158,11,0.35), 0 0 12px rgba(245,158,11,0.6) !important;
-}
-
-/* BID label — absolutely below the dot, does not affect marker height */
-.autopluto-range-bid-label {
-  position: absolute !important;
-  top: calc(100% + 4px) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  font-size: 8px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #f59e0b !important;
-  white-space: nowrap !important;
-  line-height: 1 !important;
-}
-
-/* Keep legacy classes for any code that still references them */
-.autopluto-range-viz { margin-bottom: 2px !important; }
-
-.autopluto-range-card .autopluto-range-track {
-  position: relative !important;
-  height: 12px !important;
-  background: #0a1526 !important;
-  border-radius: 6px !important;
-  margin-bottom: 0 !important;
-  border: 1px solid #1e3558 !important;
-}
-
-.autopluto-range-card .autopluto-range-track-fill {
-  position: absolute !important;
-  inset: 0 !important;
-  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 22%, #2563eb 50%, #0ea5e9 68%, #1d4ed8 82%, #1e3a8a 100%) !important;
-  border-radius: 6px !important;
-  opacity: 0.55 !important;
-}
-
-.autopluto-rm {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 20px !important;
-  height: 20px !important;
-  border-radius: 50% !important;
-  border: 2.5px solid #070e1c !important;
-  z-index: 2 !important;
-  cursor: default !important;
-  transition: transform 0.15s ease, filter 0.15s ease !important;
-}
-.autopluto-rm:hover {
-  transform: translate(-50%, -50%) scale(1.4) !important;
-  z-index: 3 !important;
-}
-.autopluto-rm--emp {
-  background: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.30), 0 0 14px rgba(59,130,246,0.55) !important;
-  border-color: #1e3a8a !important;
-}
-.autopluto-rm--rmb     { background: #10b981 !important; border-color: #064e3b !important; }
-.autopluto-rm--current { background: #f97316 !important; border-color: #7c2d12 !important; }
-
-.autopluto-range-bounds {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: flex-end !important;
-  margin-top: 5px !important;
-  margin-bottom: 8px !important;
-}
-
-.autopluto-range-bound {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 2px !important;
-}
-
-.autopluto-range-bound--high {
-  align-items: flex-end !important;
-  text-align: right !important;
-}
-
-.autopluto-range-bound-lbl {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.6px !important;
-  color: #4b5563 !important;
-}
-
-.autopluto-range-bound-val {
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  color: #93c5fd !important;
-  letter-spacing: -0.5px !important;
-  line-height: 1 !important;
-}
-
-.autopluto-range-bound--low  .autopluto-range-bound-val { color: #7dd3fc !important; }
-.autopluto-range-bound--high .autopluto-range-bound-val { color: #93c5fd !important; }
-
-.autopluto-range-legend {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 6px !important;
-  border-top: 1px solid #1a2f4a !important;
-  padding-top: 12px !important;
-  margin-top: 2px !important;
-}
-
-.autopluto-range-legend-item {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 6px !important;
-}
-.autopluto-range-legend-dot {
-  width: 9px !important;
-  height: 9px !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
-  margin-top: 2px !important;
-  box-shadow: 0 0 6px currentColor !important;
-}
-.autopluto-range-legend-dot--emp     { background: #3b82f6 !important; box-shadow: 0 0 6px rgba(59,130,246,0.55) !important; }
-.autopluto-range-legend-dot--rmb     { background: #10b981 !important; box-shadow: 0 0 6px rgba(16,185,129,0.55) !important; }
-.autopluto-range-legend-dot--current { background: #f97316 !important; box-shadow: 0 0 6px rgba(249,115,22,0.55) !important; }
-
-.autopluto-range-legend-info {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1px !important;
-  min-width: 0 !important;
-}
-.autopluto-range-legend-lbl {
-  font-size: 8px !important;
-  color: #64748b !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-  white-space: nowrap !important;
-}
-.autopluto-range-legend-val {
-  font-size: 12px !important;
-  color: #c7d8f0 !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-  letter-spacing: -0.3px !important;
-}
-
-.autopluto-range-legend--compact {
-  grid-template-columns: repeat(2, auto) !important;
-  justify-content: flex-start !important;
-  gap: 4px 16px !important;
-  border-top-color: #1a2f4a !important;
-  padding-top: 8px !important;
-  margin-top: 0 !important;
-}
-.autopluto-range-legend--compact .autopluto-range-legend-val {
-  font-size: 11px !important;
-}
-
-.autopluto-range-simple-val--bid {
-  color: #f97316 !important;
-}
-
-.autopluto-range-simple {
-  display: flex !important;
-  gap: 20px !important;
-  flex-wrap: wrap !important;
-}
-.autopluto-range-simple-item {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 3px !important;
-}
-.autopluto-range-simple-lbl {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.4px !important;
-  color: #4b5563 !important;
-}
-.autopluto-range-simple-val {
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  color: #93c5fd !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   E. COMPARABLE VEHICLES CHART  (SVG scatter plot)
-   ═══════════════════════════════════════════════════════════════ */
-
-.autopluto-comps-card {
-  background: #070e1c !important;
-  border: 1px solid #1e3558 !important;
-  border-radius: 12px !important;
-  padding: 10px 12px !important;
-}
-
-.autopluto-comps-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 8px !important;
-}
-.autopluto-comps-title {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.7px !important;
-  color: #60a5fa !important;
-}
-.autopluto-comps-count-badge {
-  font-size: 9px !important;
-  font-weight: 600 !important;
-  color: #64748b !important;
-  background: #0a1526 !important;
-  border: 1px solid #243c5f !important;
-  padding: 2px 7px !important;
-  border-radius: 100px !important;
-}
-
-/* Chart wrapper — position:relative so tooltip can be absolute */
-.autopluto-comps-chart-wrap {
-  position: relative !important;
-  width: 100% !important;
-}
-
-.autopluto-comps-svg {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  overflow: visible !important;
-}
-
-/* SVG data points — larger and brighter for readability */
-.autopluto-comp-dot {
-  fill: #50c8f8 !important;
-  stroke: #071828 !important;
-  stroke-width: 2 !important;
-  cursor: pointer !important;
-  transition: fill 0.15s ease, filter 0.15s ease, r 0.15s ease !important;
-}
-.autopluto-comp-dot:hover {
-  fill: #a5e3ff !important;
-  filter: drop-shadow(0 0 8px rgba(80,200,248,0.9)) !important;
-}
-
-/* Hover tooltip */
-.autopluto-comp-tooltip {
-  display: none !important;
-  position: absolute !important;
-  z-index: 20 !important;
-  pointer-events: none !important;
-  background: #0d1e38 !important;
-  border: 1px solid #2a4a72 !important;
-  border-radius: 8px !important;
-  padding: 9px 11px !important;
-  min-width: 152px !important;
-  max-width: 210px !important;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.75), 0 0 0 1px rgba(56,189,248,0.08) !important;
-  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
-}
-.autopluto-comp-tt-title {
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  color: #e2ecff !important;
-  margin-bottom: 7px !important;
-  line-height: 1.3 !important;
-  border-bottom: 1px solid #1e3558 !important;
-  padding-bottom: 6px !important;
-}
-.autopluto-comp-tt-row {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px !important;
-  margin-top: 4px !important;
-}
-.autopluto-comp-tt-row span {
-  font-size: 9px !important;
-  color: #64748b !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-}
-.autopluto-comp-tt-row strong {
-  font-size: 11px !important;
-  color: #bcd5f5 !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-}
-
-/* Empty state */
-.autopluto-comps-empty {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 8px !important;
-  padding: 4px 0 2px !important;
-}
-.autopluto-comps-empty-icon {
-  font-size: 14px !important;
-  color: #374151 !important;
-  flex-shrink: 0 !important;
-  line-height: 1.5 !important;
-}
-.autopluto-comps-empty-text {
-  font-size: 10px !important;
-  color: #64748b !important;
-  line-height: 1.55 !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   F. SUPPORTING RISK & QUALITY SIGNALS
-   ═══════════════════════════════════════════════════════════════ */
-
-.autopluto-signals-row {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-}
-.autopluto-signal-chip {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  padding: 4px 10px 4px 8px !important;
-  border-radius: 100px !important;
-  border: 1px solid #1f2937 !important;
-  background: #0c1120 !important;
-}
-.autopluto-signal-lbl {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #4b5563 !important;
-}
-.autopluto-signal-val {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  text-transform: capitalize !important;
-  color: #9ca3af !important;
-}
-.autopluto-signal-chip--green  { border-color: #166534 !important; background: #052e16 !important; }
-.autopluto-signal-chip--green  .autopluto-signal-val { color: #4ade80 !important; }
-.autopluto-signal-chip--yellow { border-color: #92400e !important; background: #1c1500 !important; }
-.autopluto-signal-chip--yellow .autopluto-signal-val { color: #fbbf24 !important; }
-.autopluto-signal-chip--red    { border-color: #991b1b !important; background: #1f0a0a !important; }
-.autopluto-signal-chip--red    .autopluto-signal-val { color: #f87171 !important; }
-.autopluto-signal-chip--blue   { border-color: #1e40af !important; background: #0f1e3a !important; }
-.autopluto-signal-chip--blue   .autopluto-signal-val { color: #93c5fd !important; }
-.autopluto-signal-chip--gray   { border-color: #374151 !important; background: #1f2937 !important; }
-.autopluto-signal-chip--gray   .autopluto-signal-val { color: #9ca3af !important; }
-
-/* ── Collapsibles wrapper ─────────────────────────────────────── */
-.autopluto-collapsibles {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-}
-
-/* ── Meta tags (header) ──────────────────────────────────────── */
-.autopluto-meta-tag {
-  font-size: 10px !important;
-  color: rgba(255,255,255,0.5) !important;
-  white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 3px !important;
-}
-.autopluto-meta-tag--mono {
-  font-family: 'Consolas', 'Courier New', monospace !important;
-  color: rgba(255,255,255,0.42) !important;
-  letter-spacing: 0.3px !important;
-}
-.autopluto-meta-tag--warn {
-  color: rgba(251,191,36,0.8) !important;
-}
-
-/* ── Scrollbar ───────────────────────────────────────────────── */
-.autopluto-card::-webkit-scrollbar       { width: 5px !important; }
-.autopluto-card::-webkit-scrollbar-track { background: rgba(0,0,0,0.2) !important; border-radius: 3px !important; }
-.autopluto-card::-webkit-scrollbar-thumb { background: #1e2d42 !important; border-radius: 3px !important; }
-.autopluto-card::-webkit-scrollbar-thumb:hover { background: #2d3f5a !important; }
-
-/* ── Collapsible summary hover ───────────────────────────────── */
-.autopluto-details-summary:hover {
-  background: rgba(255,255,255,0.03) !important;
-}
-
-/* ── Footer ──────────────────────────────────────────────────── */
-.autopluto-card-footer {
-  gap: 8px !important;
-  justify-content: flex-end !important;
-}
-
 /* ── Batch banner ────────────────────────────────────────────── */
 .autopluto-batch-banner {
   position: fixed !important;
@@ -1891,200 +2149,85 @@ details[open].autopluto-details > .autopluto-details-summary .autopluto-details-
   left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 99998 !important;
-  background: #1f2937 !important;
-  border: 1px solid #374151 !important;
-  color: #e5e7eb !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #374151 !important;
   padding: 8px 20px !important;
   border-radius: 20px !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,.5) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
   white-space: nowrap !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   v9 ADDITIONS — Range RMB marker, table, status grid
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── Range track wrap: add top padding for RMB label above ───── */
-.autopluto-range-track-wrap {
-  position: relative !important;
-  padding-top: 16px !important;
-  padding-bottom: 20px !important;
-}
-
-/* ── RMB Marker (green, label above track) ───────────────────── */
-.autopluto-range-rmb-marker {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 3 !important;
-  width: 14px !important;
-  height: 14px !important;
-  pointer-events: none !important;
-}
-.autopluto-range-rmb-dot {
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 50% !important;
-  background: radial-gradient(circle at 38% 36%, #6ee7b7, #10b981) !important;
-  border: 2px solid #070e1c !important;
-  box-shadow: 0 0 0 2.5px rgba(16,185,129,0.35), 0 0 12px rgba(16,185,129,0.6) !important;
-}
-.autopluto-range-rmb-label {
-  position: absolute !important;
-  bottom: calc(100% + 4px) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  font-size: 8px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #10b981 !important;
-  white-space: nowrap !important;
-  line-height: 1 !important;
-}
-
-/* ── Range legend value color variants ──────────────────────── */
-.autopluto-range-legend-val--rmb     { color: #10b981 !important; }
-.autopluto-range-legend-val--current { color: #f97316 !important; }
-.autopluto-range-legend-val--emp     { color: #93c5fd !important; }
-
-/* ═══════════════════════════════════════════════════════════════
-   COMPARABLE VEHICLES TABLE  (v9)
-   ═══════════════════════════════════════════════════════════════ */
-.autopluto-comp-table-wrap {
-  overflow-x: auto !important;
-  margin-top: 8px !important;
-  padding-top: 8px !important;
-  border-top: 1px solid #0d1e30 !important;
-}
-.autopluto-comp-table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  table-layout: auto !important;
-  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
-}
-.autopluto-comp-th {
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-  color: #374151 !important;
-  padding: 0 6px 6px !important;
-  text-align: left !important;
-  border-bottom: 1px solid #0d1e30 !important;
-  white-space: nowrap !important;
-}
-.autopluto-comp-th:not(:first-child) { text-align: right !important; }
-.autopluto-comp-td {
-  font-size: 10px !important;
-  font-weight: 500 !important;
-  color: #64748b !important;
-  padding: 5px 6px !important;
-  border-bottom: 1px solid #070e1a !important;
-  vertical-align: middle !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  max-width: 110px !important;
-}
-.autopluto-comp-row:hover .autopluto-comp-td {
-  background: rgba(59,130,246,0.04) !important;
-  color: #93a8c4 !important;
-}
-.autopluto-comp-td--vehicle {
-  color: #93a8c4 !important;
-  font-weight: 600 !important;
-  max-width: 120px !important;
-}
-.autopluto-comp-td--price {
-  text-align: right !important;
-  color: #bcd5f5 !important;
-  font-weight: 700 !important;
-}
-.autopluto-comp-td--mileage,
-.autopluto-comp-td--diff,
-.autopluto-comp-td--score { text-align: right !important; }
-.autopluto-comp-td--location { max-width: 80px !important; }
-.autopluto-comp-diff {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-}
-.autopluto-comp-diff--neg { color: #4ade80 !important; }
-.autopluto-comp-diff--pos { color: #f87171 !important; }
-.autopluto-comp-score {
-  font-size: 10px !important;
-  color: #60a5fa !important;
-  font-weight: 600 !important;
-}
-.autopluto-comp-na {
-  color: #1f2937 !important;
-  font-size: 10px !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   STATUS METRICS GRID  (replaces signal chips — v9)
-   ═══════════════════════════════════════════════════════════════ */
-.autopluto-status-grid {
+/* ── Price grid (legacy) ─────────────────────────────────────── */
+.autopluto-price-grid {
   display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 6px !important;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+  gap: 8px !important;
 }
-.autopluto-status-item {
-  background: #0c1120 !important;
-  border: 1px solid #1a2035 !important;
-  border-radius: 8px !important;
-  padding: 8px 10px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
+
+.autopluto-price-card {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  padding: 12px 12px 10px !important;
+  text-align: center !important;
 }
-.autopluto-status-label {
-  font-size: 8px !important;
-  font-weight: 700 !important;
+
+.autopluto-price-card--main   { background: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+.autopluto-price-card--market { background: #eff6ff !important; border-color: #bfdbfe !important; }
+.autopluto-price-card--current{ background: #f9fafb !important; border-color: #e5e7eb !important; }
+
+.autopluto-price-card-label {
+  font-size: 9px !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.6px !important;
-  color: #374151 !important;
+  letter-spacing: 0.5px !important;
+  color: #9ca3af !important;
+  margin-bottom: 6px !important;
 }
-.autopluto-status-value-row {
-  display: flex !important;
+
+.autopluto-price-card--main    .autopluto-price-card-label { color: #059669 !important; }
+.autopluto-price-card--market  .autopluto-price-card-label { color: #2563eb !important; }
+.autopluto-price-card--current .autopluto-price-card-label { color: #9ca3af !important; }
+
+.autopluto-price-card-value {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+}
+
+.autopluto-price-card--main    .autopluto-price-card-value { color: #059669 !important; font-size: 24px !important; letter-spacing: -1px !important; }
+.autopluto-price-card--market  .autopluto-price-card-value { color: #2563eb !important; font-size: 18px !important; }
+.autopluto-price-card--current .autopluto-price-card-value { color: #6b7280 !important; font-size: 16px !important; }
+
+/* ── VIN legacy ──────────────────────────────────────────────── */
+.autopluto-card-vin {
+  font-size: 10px !important;
+  color: #9ca3af !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  letter-spacing: 0.3px !important;
+}
+
+.autopluto-mileage-tag {
+  font-size: 10px !important;
+  color: #6b7280 !important;
+  display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 3px !important;
 }
-.autopluto-status-dot {
-  width: 7px !important;
-  height: 7px !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
+
+.autopluto-identity-tag {
+  font-size: 10px !important;
+  color: #9ca3af !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
 }
-.autopluto-status-value {
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  text-transform: capitalize !important;
-}
-.autopluto-status-item--green  { border-color: #166534 !important; background: #052e16 !important; }
-.autopluto-status-item--green  .autopluto-status-label { color: #16a34a !important; }
-.autopluto-status-item--green  .autopluto-status-dot   { background: #22c55e !important; }
-.autopluto-status-item--green  .autopluto-status-value { color: #4ade80 !important; }
 
-.autopluto-status-item--yellow { border-color: #92400e !important; background: #1c1500 !important; }
-.autopluto-status-item--yellow .autopluto-status-label { color: #d97706 !important; }
-.autopluto-status-item--yellow .autopluto-status-dot   { background: #f59e0b !important; }
-.autopluto-status-item--yellow .autopluto-status-value { color: #fbbf24 !important; }
-
-.autopluto-status-item--red    { border-color: #991b1b !important; background: #1f0a0a !important; }
-.autopluto-status-item--red    .autopluto-status-label { color: #dc2626 !important; }
-.autopluto-status-item--red    .autopluto-status-dot   { background: #ef4444 !important; }
-.autopluto-status-item--red    .autopluto-status-value { color: #f87171 !important; }
-
-.autopluto-status-item--blue   { border-color: #1e40af !important; background: #0f1e3a !important; }
-.autopluto-status-item--blue   .autopluto-status-label { color: #3b82f6 !important; }
-.autopluto-status-item--blue   .autopluto-status-dot   { background: #60a5fa !important; }
-.autopluto-status-item--blue   .autopluto-status-value { color: #93c5fd !important; }
-
-.autopluto-status-item--gray   { border-color: #374151 !important; background: #111827 !important; }
-.autopluto-status-item--gray   .autopluto-status-label { color: #4b5563 !important; }
-.autopluto-status-item--gray   .autopluto-status-dot   { background: #6b7280 !important; }
-.autopluto-status-item--gray   .autopluto-status-value { color: #9ca3af !important; }
+.autopluto-vin-missing { color: #d97706 !important; }

@@ -547,7 +547,11 @@
 
     for (const el of candidates) {
       if (!el.classList.contains('active')) {
+        const savedHref = el.getAttribute('href');
+        const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+        if (isJsHref) el.removeAttribute('href');
         el.click();
+        if (isJsHref) el.setAttribute('href', savedHref);
         return true;
       }
     }
@@ -562,7 +566,11 @@
       '[aria-label="close"], [aria-label="Close"], [title="Close"]'
     );
     if (btn) {
+      const savedHref = btn.getAttribute('href');
+      const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+      if (isJsHref) btn.removeAttribute('href');
       btn.click();
+      if (isJsHref) btn.setAttribute('href', savedHref);
     } else {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
     }
@@ -658,7 +666,15 @@
         ].filter(Boolean);
 
         for (const target of clickTargets) {
+          // Temporarily strip javascript: hrefs so the browser doesn't try to
+          // navigate to them (which violates the page's CSP). Click handlers
+          // registered via addEventListener are still fired normally.
+          const savedHref = target.getAttribute('href');
+          const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+          if (isJsHref) target.removeAttribute('href');
           target.click();
+          if (isJsHref) target.setAttribute('href', savedHref);
+
           await new Promise((r) => setTimeout(r, 200));
           popup = findVisiblePopup();
           if (popup) { extractionStatus.opened = true; break; }
@@ -1155,23 +1171,15 @@
     closeActivePopover();
   }
 
-  function positionPopover(popover, rowEl) {
-    const POPOVER_W  = 500;
-    const TAB_W      = 26; // handle width — must stay fully visible
-    const rect       = rowEl.getBoundingClientRect();
+  function positionPopover(popover, _rowEl) {
+    const POPOVER_W = Math.min(1080, window.innerWidth - 32);
+    const left = Math.max(16, Math.floor((window.innerWidth - POPOVER_W) / 2));
 
-    let left = rect.right + TAB_W + 10; // clear the blue $ handle entirely
-    if (left + POPOVER_W > window.innerWidth - 16) {
-      left = window.innerWidth - POPOVER_W - 16;
-    }
-    left = Math.max(16, left);
-
-    const popoverH = popover.offsetHeight || 420;
-    let top = rect.top;
-    if (top + popoverH > window.innerHeight - 16) {
-      top = window.innerHeight - popoverH - 16;
-    }
-    top = Math.max(16, top);
+    // Use scrollHeight for accurate height (card body is scrollable, card is flex)
+    const rawH = popover.scrollHeight || 700;
+    const maxH = window.innerHeight - 32;
+    const popoverH = Math.min(rawH, maxH);
+    const top = Math.max(16, Math.floor((window.innerHeight - popoverH) / 2));
 
     popover.style.left = `${left}px`;
     popover.style.top  = `${top}px`;
@@ -1416,7 +1424,7 @@
           <div class="autopluto-header-title-group">
             <div class="autopluto-card-title">${esc(vehicleData.titleFull || 'Vehicle')}</div>
             <div class="autopluto-header-badges">
-              <span class="autopluto-badge-ai">Estimate Report</span>
+              <span class="autopluto-badge-ai">AI Price Report</span>
               ${modelBadge}
             </div>
           </div>
@@ -1427,57 +1435,121 @@
   }
 
   // ── B. Primary Intelligence Section ─────────────────────────
-  // EMP is the HERO. Confidence (with explicit label) tightly coupled.
-  // Quality appears below Confidence within the EMP hero card.
-  // RMB and Current Bid are secondary (right column).
-  function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality) {
-    // Confidence row with explicit "Confidence" label
-    const confRowHtml = confidence
-      ? `<div class="autopluto-emp-conf-row">
-           <span class="autopluto-emp-conf-key">Confidence</span>
-           <div class="autopluto-emp-conf-meter">
-             <div class="autopluto-emp-conf-fill autopluto-emp-conf-fill--${esc(confColor)}" style="width:${confPct}%"></div>
-           </div>
-           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--${esc(confColor)}">${esc(confidence.replace(/_/g, ' '))}</span>
-         </div>`
-      : `<div class="autopluto-emp-conf-row">
-           <span class="autopluto-emp-conf-key">Confidence</span>
-           <span class="autopluto-emp-conf-badge autopluto-emp-conf-badge--gray">N/A</span>
-         </div>`;
+  // EMP is the HERO with review pill + reliability assessment.
+  // Right side: RMB, safety bar, adjusted price, model price.
+  function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality, manualReview, safetyLevel, adjustedPrice, modelPrice, discountPct) {
+    const heroClass = manualReview ? ' autopluto-emp-hero--red' : '';
 
-    // Quality row — visually secondary, below Confidence
-    let qualityRowHtml = '';
-    if (compQuality) {
-      const qc     = compQuality.toLowerCase();
-      const qColor = (qc === 'good' || qc === 'high') ? 'green'
-        : (qc === 'unreliable' || qc === 'low')       ? 'red'
-        : 'yellow';
-      qualityRowHtml = `
-        <div class="autopluto-emp-quality-row">
-          <span class="autopluto-emp-conf-key autopluto-emp-conf-key--dim">Quality</span>
-          <span class="autopluto-emp-quality-badge autopluto-emp-quality-badge--${esc(qColor)}">${esc(compQuality.replace(/_/g, ' '))}</span>
+    // Review status pill
+    const reviewPill = manualReview
+      ? `<span class="autopluto-review-pill autopluto-review-pill--manual">Manual Review Required</span>`
+      : `<span class="autopluto-review-pill autopluto-review-pill--auto">Auto Review Passed</span>`;
+
+    // Map confidence → segment index (0=Low, 1=Medium, 2=High)
+    const getConfSeg = (level) => {
+      if (!level) return 1;
+      const l = level.toLowerCase();
+      if (l.includes('low')) return 0;
+      if (l.includes('high')) return 2;
+      return 1;
+    };
+
+    // Map quality → segment index (0=Weak, 1=Normal, 2=Strong)
+    const getQualSeg = (q) => {
+      if (!q) return 1;
+      const l = q.toLowerCase();
+      if (l.includes('weak') || l.includes('unreliable') || l.includes('poor') || (l.includes('low') && !l.includes('medium'))) return 0;
+      if (l.includes('strong') || l.includes('excellent') || l.includes('high') || l.includes('good')) return 2;
+      return 1;
+    };
+
+    const buildSeg = (labels, slugs, activeIdx) =>
+      `<div class="autopluto-seg-bar">${labels.map((lbl, i) => {
+        const cls = i === activeIdx
+          ? `autopluto-seg-item autopluto-seg-item--active autopluto-seg-item--${slugs[i]}`
+          : 'autopluto-seg-item';
+        return `<span class="${cls}">${esc(lbl)}</span>`;
+      }).join('')}</div>`;
+
+    const confSeg   = getConfSeg(confidence);
+    const qualSeg   = getQualSeg(compQuality);
+    const confBar   = buildSeg(['Low', 'Medium', 'High'],  ['low', 'medium', 'high'],  confSeg);
+    const qualBar   = buildSeg(['Weak', 'Normal', 'Strong'], ['weak', 'normal', 'strong'], qualSeg);
+
+    const reliabilityHtml = `
+      <div class="autopluto-reliability">
+        <div class="autopluto-reliability-title">Reliability Assessment</div>
+        <div class="autopluto-reliability-row">
+          <span class="autopluto-reliability-key">Confidence</span>${confBar}
+        </div>
+        <div class="autopluto-reliability-row">
+          <span class="autopluto-reliability-key">Quality</span>${qualBar}
+        </div>
+      </div>`;
+
+    // Safety risk bar
+    let safetyBarHtml = '';
+    if (safetyLevel) {
+      const sc = getSafetyColor(safetyLevel);
+      const safetyPctMap = { green: 25, yellow: 55, red: 80 };
+      const sPct = safetyPctMap[sc] || 50;
+      safetyBarHtml = `
+        <div class="autopluto-right-metric">
+          <div class="autopluto-right-metric-label">Safety Risk</div>
+          <div class="autopluto-safety-bar-wrap" style="gap:4px">
+            <div class="autopluto-safety-bar-track">
+              <div class="autopluto-safety-bar-fill autopluto-safety-bar-fill--${esc(sc)}" style="width:${sPct}%"></div>
+            </div>
+            <span class="autopluto-safety-bar-text">${esc(safetyLevel.replace(/_/g, ' '))}</span>
+          </div>
         </div>`;
     }
 
+    // Discount % below wholesale
+    const calcDiscount = discountPct != null
+      ? discountPct
+      : (emp != null && rmb != null && emp > 0 ? +((((emp - rmb) / emp) * 100).toFixed(1)) : null);
+    const discountHtml = calcDiscount != null
+      ? `<div class="autopluto-rmb-mini-sub">&#8722;${calcDiscount}% below est.</div>`
+      : '';
+
+    const adjustedHtml = adjustedPrice != null
+      ? `<div class="autopluto-right-metric">
+           <div class="autopluto-right-metric-label">Adjusted Price</div>
+           <div class="autopluto-right-metric-value">${fmt(adjustedPrice)}</div>
+         </div>` : '';
+
+    const modelPriceHtml = modelPrice != null
+      ? `<div class="autopluto-right-metric">
+           <div class="autopluto-right-metric-label">Model Price</div>
+           <div class="autopluto-right-metric-value">${fmt(modelPrice)}</div>
+         </div>` : '';
+
+    const currentBidHtml = `
+      <div class="autopluto-right-metric">
+        <div class="autopluto-right-metric-label">Current Bid</div>
+        <div class="autopluto-right-metric-value${!hasCurrentPrice ? ' autopluto-bid-mini-value--none' : ''}" style="font-size:16px">${hasCurrentPrice ? fmt(currentPrice) : '—'}</div>
+      </div>`;
+
     return `
       <div class="autopluto-primary-intel">
-        <div class="autopluto-emp-hero">
-          <div class="autopluto-emp-hero-label">Estimated Market Price</div>
+        <div class="autopluto-emp-hero${heroClass}">
+          <div class="autopluto-emp-hero-label">Estimate Wholesale Value</div>
           <div class="autopluto-emp-hero-value">${fmt(emp)}</div>
-          <div class="autopluto-emp-conf">
-            ${confRowHtml}
-            ${qualityRowHtml}
-          </div>
+          ${reviewPill}
+          ${reliabilityHtml}
         </div>
         <div class="autopluto-right-stack">
           <div class="autopluto-rmb-mini">
-            <div class="autopluto-rmb-mini-label">Rec. Max Bid</div>
+            <div class="autopluto-rmb-mini-label">Recommended Max Bid</div>
             <div class="autopluto-rmb-mini-value">${fmt(rmb)}</div>
-            <div class="autopluto-rmb-mini-sub">Your ceiling</div>
+            ${discountHtml}
           </div>
-          <div class="autopluto-bid-mini">
-            <div class="autopluto-bid-mini-label">Current Bid</div>
-            <div class="autopluto-bid-mini-value${!hasCurrentPrice ? ' autopluto-bid-mini-value--none' : ''}">${hasCurrentPrice ? fmt(currentPrice) : '—'}</div>
+          <div class="autopluto-right-metrics">
+            ${safetyBarHtml}
+            ${adjustedHtml}
+            ${modelPriceHtml}
+            ${currentBidHtml}
           </div>
         </div>
       </div>`;
@@ -1625,7 +1697,7 @@
   }
 
   // ── E2. Comparable Vehicles Table ────────────────────────────
-  function buildComparableTable(comps, emp) {
+  function buildComparableTable(comps, emp, rmb) {
     if (!comps || comps.length === 0) return '';
 
     const rows = comps.map((c, i) => {
@@ -1633,10 +1705,13 @@
       const mileage  = c.mileage ?? c.km ?? c.odometer ?? null;
       const location = c.city || c.cityAuction || c.location || c.auction_location || '';
       const score    = c.similarity_score ?? c.score ?? null;
+      const saleDate = c.auctionRunTimeAt || c.sale_date || null;
       const vehicle  = [c.year, c.make, c.model, c.trim].filter(Boolean).join(' ') || `#${i + 1}`;
       const vShort   = vehicle.length > 22 ? vehicle.slice(0, 22) + '\u2026' : vehicle;
       const locShort = location.length > 14 ? location.slice(0, 14) + '\u2026' : location;
+      const dateShort = saleDate ? String(saleDate).slice(0, 10) : null;
 
+      // Vs Estimate
       let diffHtml = `<span class="autopluto-comp-na">\u2014</span>`;
       if (price != null && emp != null) {
         const diff = price - emp;
@@ -1646,17 +1721,30 @@
         diffHtml   = `<span class="autopluto-comp-diff autopluto-comp-diff--${cls}">${sign}${pct}%</span>`;
       }
 
+      // Vs Bid
+      let bidDiffHtml = `<span class="autopluto-comp-na">\u2014</span>`;
+      if (price != null && rmb != null) {
+        const diff = price - rmb;
+        const pct  = ((diff / rmb) * 100).toFixed(1);
+        const sign = diff >= 0 ? '+' : '';
+        const cls  = diff < 0 ? 'neg' : 'pos';
+        bidDiffHtml = `<span class="autopluto-comp-diff autopluto-comp-diff--${cls}">${sign}${pct}%</span>`;
+      }
+
       const scoreHtml = score != null
         ? `<span class="autopluto-comp-score">${typeof score.toFixed === 'function' ? score.toFixed(2) : score}</span>`
         : `<span class="autopluto-comp-na">\u2014</span>`;
 
       return `<tr class="autopluto-comp-row">
+        <td class="autopluto-comp-td autopluto-comp-td--num">${i + 1}</td>
         <td class="autopluto-comp-td autopluto-comp-td--vehicle" title="${esc(vehicle)}">${esc(vShort)}</td>
         <td class="autopluto-comp-td autopluto-comp-td--price">${price != null ? esc(fmt(price)) : `<span class="autopluto-comp-na">\u2014</span>`}</td>
         <td class="autopluto-comp-td autopluto-comp-td--mileage">${mileage != null ? esc(fmtNum(mileage)) : `<span class="autopluto-comp-na">\u2014</span>`}</td>
-        <td class="autopluto-comp-td autopluto-comp-td--diff">${diffHtml}</td>
         <td class="autopluto-comp-td autopluto-comp-td--location" title="${esc(location)}">${location ? esc(locShort) : `<span class="autopluto-comp-na">\u2014</span>`}</td>
         <td class="autopluto-comp-td autopluto-comp-td--score">${scoreHtml}</td>
+        <td class="autopluto-comp-td autopluto-comp-td--diff">${diffHtml}</td>
+        <td class="autopluto-comp-td autopluto-comp-td--bid-diff">${bidDiffHtml}</td>
+        <td class="autopluto-comp-td autopluto-comp-td--date">${dateShort ? esc(dateShort) : `<span class="autopluto-comp-na">\u2014</span>`}</td>
       </tr>`;
     }).join('');
 
@@ -1665,12 +1753,15 @@
         <table class="autopluto-comp-table">
           <thead>
             <tr>
-              <th class="autopluto-comp-th">Vehicle</th>
+              <th class="autopluto-comp-th" style="text-align:left">#</th>
+              <th class="autopluto-comp-th" style="text-align:left">Vehicle</th>
               <th class="autopluto-comp-th">Price</th>
               <th class="autopluto-comp-th">Mileage</th>
-              <th class="autopluto-comp-th">Vs Est.</th>
               <th class="autopluto-comp-th">Location</th>
               <th class="autopluto-comp-th">Score</th>
+              <th class="autopluto-comp-th">Vs Est.</th>
+              <th class="autopluto-comp-th">Vs Bid</th>
+              <th class="autopluto-comp-th">Sale Date</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -1685,8 +1776,8 @@
 
     const headerHtml = `
       <div class="autopluto-comps-header">
-        <div class="autopluto-comps-title">Comparable Vehicles</div>
-        ${compCount != null ? `<span class="autopluto-comps-count-badge">${compCount} used</span>` : ''}
+        <div class="autopluto-comps-title">Comparable Vehicles Intelligence</div>
+        ${compCount != null ? `<span class="autopluto-comps-count-badge">${compCount} found</span>` : ''}
       </div>`;
 
     if (!comps || comps.length === 0) {
@@ -1758,12 +1849,12 @@
 
     const parts = [];
 
-    // Horizontal grid + y-axis price labels — brighter for readability
+    // Horizontal grid + y-axis price labels — light grey for readability
     for (let i = 0; i <= 4; i++) {
       const y     = MT + (ph / 4) * i;
       const price = yMax - (yMax - yMin) * (i / 4);
-      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#243a56" stroke-width="0.8"/>`);
-      parts.push(`<text x="${(ML - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#93a8c4" font-size="10" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
+      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.8"/>`);
+      parts.push(`<text x="${(ML - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#6b7280" font-size="10" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
     }
 
     // EMP reference dashed line — more prominent
@@ -1771,7 +1862,7 @@
       const ey = toY(emp);
       if (ey != null) {
         parts.push(`<line x1="${ML}" y1="${ey.toFixed(1)}" x2="${VW - MR}" y2="${ey.toFixed(1)}" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3" opacity="0.95"/>`);
-        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#60a5fa" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
+        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#2563eb" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
       }
     }
 
@@ -1780,17 +1871,17 @@
       const ry = toY(rmb);
       if (ry != null) {
         parts.push(`<line x1="${ML}" y1="${ry.toFixed(1)}" x2="${VW - MR}" y2="${ry.toFixed(1)}" stroke="#10b981" stroke-width="1.8" stroke-dasharray="4,4" opacity="0.8"/>`);
-        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ry + 3.5).toFixed(1)}" fill="#34d399" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">MAX</text>`);
+        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ry + 3.5).toFixed(1)}" fill="#059669" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">MAX</text>`);
       }
     }
 
-    // Axes — more visible
-    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#3d5a82" stroke-width="1.5"/>`);
-    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#3d5a82" stroke-width="1.5"/>`);
+    // Axes — light grey for light theme
+    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#d1d5db" stroke-width="1.5"/>`);
+    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#d1d5db" stroke-width="1.5"/>`);
 
     // X-axis label — brighter
     const xLabel = hasMileage ? 'Mileage (KM)' : 'Comparable #';
-    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 5).toFixed(1)}" fill="#93a8c4" font-size="9.5" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
+    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 5).toFixed(1)}" fill="#6b7280" font-size="9.5" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
 
     // Data points — larger and brighter
     comps.forEach((c, i) => {
@@ -1821,10 +1912,10 @@
       <div class="autopluto-comps-card">
         ${headerHtml}
         <div class="autopluto-comps-chart-wrap">
-          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${parts.join('')}</svg>
+          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${parts.join('')}</svg>
           <div class="autopluto-comp-tooltip"></div>
         </div>
-        ${buildComparableTable(comps, emp)}
+        ${buildComparableTable(comps, emp, rmb)}
       </div>`;
   }
 
@@ -1934,26 +2025,57 @@
     </div>`;
   }
 
-  // ── G. Manual Review Warning ─────────────────────────────────
+  // ── G. Manual Review Warning Banner ─────────────────────────
   function buildWarningCard(manualReview) {
     if (!manualReview) return '';
     return `
-      <div class="autopluto-manual-review-box">
+      <div class="autopluto-manual-review-banner">
         <span class="autopluto-manual-review-icon">⚠</span>
-        <div>
-          <div class="autopluto-manual-review-title">Manual Review Required</div>
-          <div class="autopluto-manual-review-sub">Do not rely on this estimate without additional review.</div>
-        </div>
+        <span class="autopluto-manual-review-text"><strong>Manual Review Required</strong> — This estimate requires human verification before bidding.</span>
       </div>`;
+  }
+
+  // ── G2. Reasons & Warnings Pill Groups ───────────────────────
+  function buildReasonsAndWarnings(reasons, warnings) {
+    if (!reasons.length && !warnings.length) return '';
+
+    let html = '<div class="autopluto-reasons-card"><div class="autopluto-reasons-header">Reasons &amp; Warnings</div>';
+
+    if (warnings.length > 0) {
+      html += '<div class="autopluto-reasons-group autopluto-reasons-group--warning">';
+      html += '<div class="autopluto-reasons-group-label">⚠ Warnings</div>';
+      html += '<div class="autopluto-reasons-pills">';
+      warnings.forEach((w) => {
+        html += `<span class="autopluto-reason-pill autopluto-reason-pill--warning">${esc(w)}</span>`;
+      });
+      html += '</div></div>';
+    }
+
+    if (reasons.length > 0) {
+      html += '<div class="autopluto-reasons-group autopluto-reasons-group--info">';
+      html += '<div class="autopluto-reasons-group-label">ℹ Info</div>';
+      html += '<div class="autopluto-reasons-pills">';
+      reasons.forEach((r) => {
+        html += `<span class="autopluto-reason-pill autopluto-reason-pill--info">${esc(r)}</span>`;
+      });
+      html += '</div></div>';
+    }
+
+    html += '</div>';
+    return html;
   }
 
   // ── H. Footer Actions ────────────────────────────────────────
   function buildFooterActions() {
     return `
       <div class="autopluto-card-footer">
-        <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-refresh-btn">↻ Refresh</button>
-        <button class="autopluto-footer-btn autopluto-footer-btn--ghost autopluto-copy-result-btn">⎘ Copy</button>
-        <button class="autopluto-footer-btn autopluto-footer-btn--close autopluto-close-footer-btn">✕ Close</button>
+        <div class="autopluto-footer-left">
+          <button class="autopluto-footer-btn autopluto-footer-btn--secondary autopluto-refresh-btn">↻ Refresh</button>
+          <button class="autopluto-footer-btn autopluto-footer-btn--ghost autopluto-copy-result-btn">⎘ Copy JSON</button>
+        </div>
+        <div class="autopluto-footer-right">
+          <button class="autopluto-footer-btn autopluto-footer-btn--close autopluto-close-footer-btn">✕ Close</button>
+        </div>
       </div>`;
   }
 
@@ -1969,7 +2091,7 @@
           <div class="autopluto-header-title-group">
             <div class="autopluto-card-title">${esc(vehicleTitle || 'Auction Price Estimate')}</div>
             <div class="autopluto-header-badges">
-              <span class="autopluto-badge-ai">Estimate Report</span>
+              <span class="autopluto-badge-ai">AI Price Report</span>
             </div>
           </div>
           <button class="autopluto-card-close" title="Close">✕</button>
@@ -1981,9 +2103,22 @@
         <div class="autopluto-skeleton-bar autopluto-skeleton-bar-sm"></div>
         <div class="autopluto-skeleton-bar"></div>
         <div class="autopluto-skeleton-bar autopluto-skeleton-bar-xs"></div>
+        <div class="autopluto-skeleton-bar autopluto-skeleton-bar-sm"></div>
+      </div>
+      <div class="autopluto-card-footer">
+        <div class="autopluto-footer-left">
+          <button class="autopluto-footer-btn autopluto-footer-btn--secondary" disabled style="opacity:0.5">↻ Refresh</button>
+        </div>
+        <div class="autopluto-footer-right">
+          <button class="autopluto-footer-btn autopluto-footer-btn--close autopluto-close-footer-btn">✕ Close</button>
+        </div>
       </div>
     `;
     card.querySelector('.autopluto-card-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActivePopover();
+    });
+    card.querySelector('.autopluto-close-footer-btn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       closeActivePopover();
     });
@@ -2030,14 +2165,18 @@
     card.className = 'autopluto-card autopluto-popover';
     card.setAttribute('data-autopluto-card', 'true');
 
-    // ── Section builders (new v8 layout) ─────────────────────────
+    // ── Section builders (new layout) ────────────────────────────
     const headerHtml   = buildHeaderSection(vehicleData, result);
-    const primaryHtml  = buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality);
+    const primaryHtml  = buildPrimaryIntelligenceSection(
+      emp, rmb, currentPrice, hasCurrentPrice,
+      confidence, confColor, confPct, compQuality,
+      manualReview, result.bid_safety_level, adjustedPrice, modelPrice, discountPct
+    );
     const insightHtml  = buildDecisionInsight(margin, hasCurrentPrice && rmb != null, currentPrice, emp);
+    const warningHtml  = buildWarningCard(manualReview);
     const rangeHtml    = buildRangeVisualization(rangeLow, rangeHigh, emp, rmb, hasCurrentPrice ? currentPrice : null);
     const compsHtml    = buildComparablesChart(raw, emp, rmb);
     const signalsHtml  = buildSupportingSignals(result, compQuality);
-    const warningHtml  = buildWarningCard(manualReview);
 
     // ── General inline warnings ──────────────────────────────────
     let inlineWarnings = '';
@@ -2131,20 +2270,22 @@
       'muted'
     );
 
-    // ── Assemble card HTML (v8 layout) ───────────────────────────
+    // ── Reasons & Warnings visible pills ─────────────────────────
+    const reasonsHtml = buildReasonsAndWarnings(normalizeReasonList(result), normalizeWarningList(result));
+
+    // ── Assemble card HTML (light modal layout) ───────────────────
     card.innerHTML = `
       ${headerHtml}
+      ${warningHtml}
       <div class="autopluto-card-body">
         ${primaryHtml}
         ${insightHtml}
-        ${warningHtml}
         ${rangeHtml}
         ${compsHtml}
+        ${reasonsHtml}
         ${signalsHtml}
         ${inlineWarnings}
         <div class="autopluto-collapsibles">
-          ${reportNotesHtml}
-          ${apiWarningsHtml}
           ${adjustHtml}
           ${inputCoverageHtml}
           ${debugHtml}
