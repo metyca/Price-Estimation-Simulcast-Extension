@@ -547,7 +547,11 @@
 
     for (const el of candidates) {
       if (!el.classList.contains('active')) {
+        const savedHref = el.getAttribute('href');
+        const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+        if (isJsHref) el.removeAttribute('href');
         el.click();
+        if (isJsHref) el.setAttribute('href', savedHref);
         return true;
       }
     }
@@ -562,7 +566,11 @@
       '[aria-label="close"], [aria-label="Close"], [title="Close"]'
     );
     if (btn) {
+      const savedHref = btn.getAttribute('href');
+      const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+      if (isJsHref) btn.removeAttribute('href');
       btn.click();
+      if (isJsHref) btn.setAttribute('href', savedHref);
     } else {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
     }
@@ -658,7 +666,15 @@
         ].filter(Boolean);
 
         for (const target of clickTargets) {
+          // Temporarily strip javascript: hrefs so the browser doesn't try to
+          // navigate to them (which violates the page's CSP). Click handlers
+          // registered via addEventListener are still fired normally.
+          const savedHref = target.getAttribute('href');
+          const isJsHref  = savedHref && /^javascript:/i.test(savedHref);
+          if (isJsHref) target.removeAttribute('href');
           target.click();
+          if (isJsHref) target.setAttribute('href', savedHref);
+
           await new Promise((r) => setTimeout(r, 200));
           popup = findVisiblePopup();
           if (popup) { extractionStatus.opened = true; break; }
@@ -1155,18 +1171,39 @@
     closeActivePopover();
   }
 
-  function positionPopover(popover, _rowEl) {
-    const POPOVER_W = Math.min(1080, window.innerWidth - 32);
-    const left = Math.max(16, Math.floor((window.innerWidth - POPOVER_W) / 2));
+  function positionPopover(popover, rowEl) {
+    const TAB_W  = 26;   // dollar-sign tab width (see .autopluto-estimate-tab)
+    const GAP    = 14;   // gap between tab right edge and popup left edge
+    const MARGIN = 12;   // viewport edge clearance
+    const MIN_W  = 360;  // minimum useful width for right-side placement
+    const MAX_W  = 900;  // maximum popup width
 
-    // Use scrollHeight for accurate height (card body is scrollable, card is flex)
-    const rawH = popover.scrollHeight || 700;
-    const maxH = window.innerHeight - 32;
-    const popoverH = Math.min(rawH, maxH);
-    const top = Math.max(16, Math.floor((window.innerHeight - popoverH) / 2));
+    let left, width;
 
-    popover.style.left = `${left}px`;
-    popover.style.top  = `${top}px`;
+    if (rowEl && document.contains(rowEl)) {
+      const rowRect  = rowEl.getBoundingClientRect();
+      const anchorX  = rowRect.right + TAB_W + GAP;
+      const available = window.innerWidth - anchorX - MARGIN;
+
+      if (available >= MIN_W) {
+        // Place report in the right-side empty space, beside the vehicle list
+        width = Math.min(available, MAX_W);
+        left  = anchorX;
+      } else {
+        // Not enough space to the right — compact centered fallback
+        width = Math.min(MAX_W, window.innerWidth - 32);
+        left  = Math.max(16, Math.floor((window.innerWidth - width) / 2));
+      }
+    } else {
+      // No row element available — centered fallback
+      width = Math.min(MAX_W, window.innerWidth - 32);
+      left  = Math.max(16, Math.floor((window.innerWidth - width) / 2));
+    }
+
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top  = `${MARGIN}px`;
+    popover.style.setProperty('width',     `${Math.round(width)}px`, 'important');
+    popover.style.setProperty('max-width', `${Math.round(width)}px`, 'important');
   }
 
   // ── UI builder helpers ──────────────────────────────────────
@@ -1422,7 +1459,7 @@
   // EMP is the HERO with review pill + reliability assessment.
   // Right side: RMB, safety bar, adjusted price, model price.
   function buildPrimaryIntelligenceSection(emp, rmb, currentPrice, hasCurrentPrice, confidence, confColor, confPct, compQuality, manualReview, safetyLevel, adjustedPrice, modelPrice, discountPct) {
-    const heroClass = manualReview ? ' autopluto-emp-hero--red' : '';
+    const heroClass = manualReview ? ' autopluto-emp-estimate-box--red' : '';
 
     // Review status pill
     const reviewPill = manualReview
@@ -1517,10 +1554,12 @@
 
     return `
       <div class="autopluto-primary-intel">
-        <div class="autopluto-emp-hero${heroClass}">
-          <div class="autopluto-emp-hero-label">Estimate Wholesale Value</div>
-          <div class="autopluto-emp-hero-value">${fmt(emp)}</div>
-          ${reviewPill}
+        <div class="autopluto-emp-hero">
+          <div class="autopluto-emp-estimate-box${heroClass}">
+            <div class="autopluto-emp-hero-label">Estimate Wholesale Value</div>
+            <div class="autopluto-emp-hero-value">${fmt(emp)}</div>
+            ${reviewPill}
+          </div>
           ${reliabilityHtml}
         </div>
         <div class="autopluto-right-stack">
@@ -1794,110 +1833,116 @@
         </div>`;
     }
 
-    // SVG chart geometry — taller, wider margins for readability
-    const VW = 460, VH = 188;
-    const ML = 62, MR = 20, MT = 18, MB = 34;
-    const pw = VW - ML - MR;
-    const ph = VH - MT - MB;
+    // ── Price scale ─────────────────────────────────────────────
+    const allScale    = [...validPrices];
+    if (emp != null) allScale.push(emp);
+    if (rmb != null) allScale.push(rmb);
+    const scaleRawMin = Math.min(...allScale);
+    const scaleRawMax = Math.max(...allScale);
+    const priceRange  = scaleRawMax - scaleRawMin;
+    // Zoom in when prices are clustered; start from 0 when spread
+    const scaleMin    = priceRange < scaleRawMax * 0.3
+      ? Math.max(0, scaleRawMin - priceRange * 0.25)
+      : 0;
+    const scaleMax    = scaleRawMax * 1.07;
+    const scaleRange  = (scaleMax - scaleMin) || 1;
 
-    const mileages  = comps.map((c) => c.mileage ?? c.km ?? c.odometer ?? c.miles ?? null);
-    const hasMileage = mileages.some((m) => m != null && m > 0);
-
-    const xVals = comps.map((c, i) => {
-      if (hasMileage) return c.mileage ?? c.km ?? c.odometer ?? c.miles ?? i;
-      return i;
-    });
-
-    const validX = xVals.filter((v) => v != null);
-    const xMin   = hasMileage ? Math.min(...validX) : 0;
-    const xMax   = hasMileage ? Math.max(...validX) : Math.max(comps.length - 1, 1);
-
-    const allPY  = [...validPrices];
-    if (emp != null) allPY.push(emp);
-    const rawYMin = Math.min(...allPY);
-    const rawYMax = Math.max(...allPY);
-    const yPad    = (rawYMax - rawYMin) * 0.12 || rawYMax * 0.08;
-    const yMin    = Math.max(0, rawYMin - yPad);
-    const yMax    = rawYMax + yPad;
-
-    const toX = (v) => {
-      if (v == null) return null;
-      const r = xMax - xMin;
-      return ML + (r === 0 ? pw / 2 : ((v - xMin) / r) * pw);
-    };
-    const toY = (v) => {
-      if (v == null) return null;
-      const r = yMax - yMin;
-      return MT + ph - (r === 0 ? ph / 2 : ((v - yMin) / r) * ph);
+    const toBarPct = (v) => {
+      if (v == null) return 0;
+      return Math.max(1, Math.min(99, ((v - scaleMin) / scaleRange) * 100));
     };
 
-    const parts = [];
+    const empPct = emp != null ? toBarPct(emp) : null;
+    const rmbPct = rmb != null ? toBarPct(rmb) : null;
 
-    // Horizontal grid + y-axis price labels — light grey for readability
-    for (let i = 0; i <= 4; i++) {
-      const y     = MT + (ph / 4) * i;
-      const price = yMax - (yMax - yMin) * (i / 4);
-      parts.push(`<line x1="${ML}" y1="${y.toFixed(1)}" x2="${VW - MR}" y2="${y.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.8"/>`);
-      parts.push(`<text x="${(ML - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" fill="#6b7280" font-size="10" text-anchor="end" font-family="Geist Sans,Inter,sans-serif">${esc(fmtShort(Math.round(price)))}</text>`);
-    }
+    // ── Find first row with a valid price (for placing refline labels) ──
+    const firstValidIdx = prices.findIndex((p) => p != null);
 
-    // EMP reference dashed line — more prominent
-    if (emp != null) {
-      const ey = toY(emp);
-      if (ey != null) {
-        parts.push(`<line x1="${ML}" y1="${ey.toFixed(1)}" x2="${VW - MR}" y2="${ey.toFixed(1)}" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3" opacity="0.95"/>`);
-        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ey + 3.5).toFixed(1)}" fill="#2563eb" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">EMP</text>`);
-      }
-    }
-
-    // RMB reference dashed line — green
-    if (rmb != null) {
-      const ry = toY(rmb);
-      if (ry != null) {
-        parts.push(`<line x1="${ML}" y1="${ry.toFixed(1)}" x2="${VW - MR}" y2="${ry.toFixed(1)}" stroke="#10b981" stroke-width="1.8" stroke-dasharray="4,4" opacity="0.8"/>`);
-        parts.push(`<text x="${(VW - MR + 4).toFixed(1)}" y="${(ry + 3.5).toFixed(1)}" fill="#059669" font-size="10" font-weight="700" font-family="Geist Sans,Inter,sans-serif">MAX</text>`);
-      }
-    }
-
-    // Axes — light grey for light theme
-    parts.push(`<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${(MT + ph).toFixed(1)}" stroke="#d1d5db" stroke-width="1.5"/>`);
-    parts.push(`<line x1="${ML}" y1="${(MT + ph).toFixed(1)}" x2="${VW - MR}" y2="${(MT + ph).toFixed(1)}" stroke="#d1d5db" stroke-width="1.5"/>`);
-
-    // X-axis label — brighter
-    const xLabel = hasMileage ? 'Mileage (KM)' : 'Comparable #';
-    parts.push(`<text x="${(ML + pw / 2).toFixed(1)}" y="${(VH - 5).toFixed(1)}" fill="#6b7280" font-size="9.5" text-anchor="middle" font-family="Geist Sans,Inter,sans-serif">${esc(xLabel)}</text>`);
-
-    // Data points — larger and brighter
-    comps.forEach((c, i) => {
+    // ── Build bar rows ───────────────────────────────────────────
+    const barRows = comps.map((c, i) => {
       const price = prices[i];
-      const xVal  = xVals[i];
-      if (price == null) return;
-      const cx = toX(xVal);
-      const cy = toY(price);
-      if (cx == null || cy == null) return;
+      if (price == null) return '';
 
-      const year     = c.year      || '';
-      const make     = (c.make     || '').toUpperCase();
-      const model    = c.model     || '';
-      const trim     = c.trim      || '';
-      const mileVal  = c.mileage ?? c.km ?? c.odometer ?? null;
-      const city     = c.city || c.cityAuction || c.location || c.auction_location || c.seller || '';
-      const score    = c.similarity_score ?? c.score ?? null;
-      const saleDate = c.auctionRunTimeAt || c.sale_date || '';
+      const year    = c.year  || '';
+      const make    = c.make  || '';
+      const model   = c.model || '';
+      const trim    = c.trim  || '';
+      const vehicle = [year, make, model, trim].filter(Boolean).join(' ') || `#${i + 1}`;
+      const vShort  = vehicle.length > 24 ? vehicle.slice(0, 24) + '\u2026' : vehicle;
+      const score   = c.similarity_score ?? c.score ?? null;
 
-      const titleStr = [year, make, model, trim].filter(Boolean).join(' ') || `Comparable ${i + 1}`;
-      const mileStr  = mileVal != null ? fmtNum(mileVal) : '';
-      const scoreStr = score != null ? (typeof score.toFixed === 'function' ? score.toFixed(2) : String(score)) : '';
+      const barW = toBarPct(price).toFixed(1);
 
-      parts.push(`<circle class="autopluto-comp-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7" data-title="${esc(titleStr)}" data-price="${esc(fmt(price))}" data-mileage="${esc(mileStr)}" data-city="${esc(city)}" data-score="${esc(scoreStr)}" data-date="${esc(saleDate)}"/>`);
-    });
+      // Color: green = at/below rec. bid, yellow = above estimate, blue = near estimate
+      let barCls;
+      if (rmb != null && price <= rmb) {
+        barCls = 'autopluto-comps-hbar-bar--green';
+      } else if (emp != null && price > emp) {
+        barCls = 'autopluto-comps-hbar-bar--yellow';
+      } else {
+        barCls = 'autopluto-comps-hbar-bar--blue';
+      }
+
+      // Price label: inside bar when wide enough, omit when too narrow
+      const priceLabelHtml = parseFloat(barW) > 28
+        ? `<span class="autopluto-comps-hbar-plabel">${esc(fmtShort(price))}</span>`
+        : '';
+
+      // Vs Estimate
+      let vsEstHtml = `<span class="autopluto-comp-na">\u2014</span>`;
+      if (price != null && emp != null) {
+        const diff = price - emp;
+        const pct  = ((diff / emp) * 100).toFixed(1);
+        const sign = diff >= 0 ? '+' : '';
+        const cls  = diff < 0 ? 'neg' : 'pos';
+        vsEstHtml  = `<span class="autopluto-comp-diff autopluto-comp-diff--${cls}">${sign}${pct}%</span>`;
+      }
+
+      const scoreHtml = score != null
+        ? `<span class="autopluto-comp-score">${typeof score.toFixed === 'function' ? score.toFixed(2) : score}</span>`
+        : '';
+
+      const isFirst = (i === firstValidIdx);
+
+      // Vertical reference lines inside this track
+      const empLineHtml = empPct != null
+        ? `<div class="autopluto-comps-hbar-vline autopluto-comps-hbar-vline--emp" style="left:${empPct.toFixed(1)}%">${isFirst ? '<span class="autopluto-comps-vline-lbl">Est. Wholesale</span>' : ''}</div>`
+        : '';
+      const rmbLineHtml = rmbPct != null
+        ? `<div class="autopluto-comps-hbar-vline autopluto-comps-hbar-vline--rmb" style="left:${rmbPct.toFixed(1)}%">${isFirst ? '<span class="autopluto-comps-vline-lbl">Rec. Bid</span>' : ''}</div>`
+        : '';
+
+      return `
+        <div class="autopluto-comps-hbar-row">
+          <div class="autopluto-comps-hbar-row-label" title="${esc(vehicle)}">${esc(vShort)}</div>
+          <div class="autopluto-comps-hbar-track${isFirst ? ' autopluto-comps-hbar-track--first' : ''}">
+            <div class="autopluto-comps-hbar-bar ${barCls}" style="width:${barW}%">${priceLabelHtml}</div>
+            ${empLineHtml}${rmbLineHtml}
+          </div>
+          <div class="autopluto-comps-hbar-meta-cell">
+            ${scoreHtml}
+            ${vsEstHtml}
+          </div>
+        </div>`;
+    }).join('');
+
+    // ── Legend ───────────────────────────────────────────────────
+    const legendParts = [
+      `<span class="autopluto-comps-legend-item autopluto-comps-legend-blue">Near estimate</span>`,
+      `<span class="autopluto-comps-legend-item autopluto-comps-legend-green">At or below rec. bid</span>`,
+      `<span class="autopluto-comps-legend-item autopluto-comps-legend-yellow">Above estimate</span>`,
+    ];
+    if (emp != null) legendParts.push(`<span class="autopluto-comps-legend-item">Est. Wholesale: <strong>${esc(fmt(emp))}</strong></span>`);
+    if (rmb != null) legendParts.push(`<span class="autopluto-comps-legend-item">Rec. Max Bid: <strong>${esc(fmt(rmb))}</strong></span>`);
 
     return `
       <div class="autopluto-comps-card">
         ${headerHtml}
-        <div class="autopluto-comps-chart-wrap">
-          <svg class="autopluto-comps-svg" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${parts.join('')}</svg>
-          <div class="autopluto-comp-tooltip"></div>
+        <div class="autopluto-comps-hbar-chart">
+          ${barRows}
+        </div>
+        <div class="autopluto-comps-hbar-legend">
+          ${legendParts.join('')}
         </div>
         ${buildComparableTable(comps, emp, rmb)}
       </div>`;
