@@ -1,0 +1,1903 @@
+/* Geist font from Google Fonts — may be blocked by page CSP; the fallback stack is applied automatically */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap');
+
+/* ============================================================
+   AutoPluто – Auction Pricing Assistant  (v6 – premium decision UI)
+   CSS for injected UI (content script)
+   All classes prefixed: autopluto-
+   Font stack: Geist Sans → Geist → Inter → system-ui
+   ============================================================ */
+
+/* ── Reset / isolation ─────────────────────────────────────── */
+.autopluto-estimate-tab,
+.autopluto-card,
+.autopluto-debug-modal,
+.autopluto-batch-banner {
+  all: initial;
+  box-sizing: border-box;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ── Portal container (tabs live here, on document.body) ────── */
+#autopluto-tab-portal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  z-index: 9000 !important;
+}
+
+/* ── Estimate tab (portal, fixed outside the row right edge) ─── */
+.autopluto-estimate-tab {
+  position: fixed !important;
+  width: 26px !important;
+  overflow: visible !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 9001 !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s ease !important;
+  box-sizing: border-box !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.autopluto-estimate-tab.autopluto-tab-row-hover,
+.autopluto-estimate-tab:hover {
+  opacity: 1 !important;
+}
+
+.autopluto-estimate-tab.autopluto-tab-done,
+.autopluto-estimate-tab.autopluto-tab-error {
+  opacity: 0.5 !important;
+}
+
+.autopluto-estimate-tab.autopluto-tab-row-hover.autopluto-tab-done,
+.autopluto-estimate-tab.autopluto-tab-row-hover.autopluto-tab-error,
+.autopluto-estimate-tab:hover.autopluto-tab-done,
+.autopluto-estimate-tab:hover.autopluto-tab-error {
+  opacity: 1 !important;
+}
+
+/* ── Handle ─────────────────────────────────────────────────── */
+.autopluto-estimate-handle {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 26px !important;
+  height: 100% !important;
+  background: linear-gradient(180deg, #4A90F5, #2F6FE4) !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.autopluto-estimate-dollar {
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* ── Expanded label ──────────────────────────────────────────── */
+.autopluto-estimate-label {
+  position: absolute !important;
+  top: 0 !important;
+  left: 26px !important;
+  height: 100% !important;
+  width: 78px !important;
+  opacity: 0 !important;
+  transform: translateX(-6px) !important;
+  pointer-events: none !important;
+  border-radius: 0 6px 6px 0 !important;
+  background: linear-gradient(180deg, #3F82F0, #285FD6) !important;
+  color: #ffffff !important;
+  box-shadow: 2px 0 8px rgba(40, 95, 214, 0.25) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  transition: opacity 160ms ease, transform 160ms ease !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+}
+
+.autopluto-estimate-tab:hover .autopluto-estimate-label {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  pointer-events: auto !important;
+}
+
+/* ── Tab state colors ────────────────────────────────────────── */
+.autopluto-tab-loading .autopluto-estimate-handle {
+  background: linear-gradient(180deg, #5a9cf5 0%, #3d7dd4 100%) !important;
+  animation: autopluto-pulse 1s ease-in-out infinite !important;
+}
+.autopluto-tab-loading .autopluto-estimate-label { background: #3d7dd4 !important; }
+
+.autopluto-tab-done .autopluto-estimate-handle { background: linear-gradient(180deg, #188038 0%, #0d5c2a 100%) !important; }
+.autopluto-tab-done .autopluto-estimate-label  { background: #0d5c2a !important; }
+
+.autopluto-tab-error .autopluto-estimate-handle { background: linear-gradient(180deg, #d93025 0%, #a31e17 100%) !important; }
+.autopluto-tab-error .autopluto-estimate-label  { background: #a31e17 !important; }
+
+@keyframes autopluto-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD / POPOVER  – premium decision UI
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-card {
+  display: block !important;
+  position: fixed !important;
+  width: 500px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  background: #111827 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.75), 0 4px 24px rgba(0,0,0,.5) !important;
+  z-index: 9100 !important;
+  color: #f9fafb !important;
+  animation: autopluto-popover-in 0.18s ease !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #374151 transparent !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.autopluto-card::-webkit-scrollbar { width: 4px !important; }
+.autopluto-card::-webkit-scrollbar-track { background: transparent !important; }
+.autopluto-card::-webkit-scrollbar-thumb { background: #374151 !important; border-radius: 2px !important; }
+
+@keyframes autopluto-popover-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Card header ─────────────────────────────────────────────── */
+.autopluto-card-header {
+  background: linear-gradient(135deg, #0f2557 0%, #1e3fa8 55%, #2563eb 100%) !important;
+  padding: 10px 14px 8px !important;
+  border-radius: 14px 14px 0 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+.autopluto-card-header--error {
+  background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%) !important;
+  border-bottom-color: rgba(255,255,255,0.1) !important;
+}
+
+.autopluto-header-top {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.autopluto-header-title-group {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.autopluto-card-title {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.3px !important;
+  line-height: 1.3 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.autopluto-header-badges {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  margin-top: 5px !important;
+  align-items: center !important;
+}
+
+.autopluto-badge-ai {
+  display: inline-block !important;
+  background: rgba(255,255,255,0.15) !important;
+  color: #ffffff !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 100px !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-model {
+  display: inline-block !important;
+  background: rgba(255,255,255,0.08) !important;
+  color: rgba(255,255,255,0.7) !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  letter-spacing: 0.4px !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-header-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px 8px !important;
+  margin-top: 5px !important;
+  align-items: center !important;
+}
+
+.autopluto-card-vin {
+  font-size: 10px !important;
+  color: rgba(255,255,255,0.55) !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  letter-spacing: 0.3px !important;
+}
+
+.autopluto-mileage-tag {
+  font-size: 10px !important;
+  color: rgba(255,255,255,0.6) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+.autopluto-identity-tag {
+  font-size: 10px !important;
+  color: rgba(255,255,255,0.5) !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.autopluto-vin-missing {
+  color: rgba(255,180,50,0.8) !important;
+}
+
+.autopluto-card-close {
+  all: initial !important;
+  cursor: pointer !important;
+  color: rgba(255,255,255,0.6) !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 4px 6px !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+  transition: color 0.12s, background 0.12s !important;
+  margin-top: -2px !important;
+}
+
+.autopluto-card-close:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.15) !important;
+}
+
+/* ── Card body ───────────────────────────────────────────────── */
+.autopluto-card-body {
+  padding: 10px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DECISION BANNER  – the #1 buying signal, most prominent section
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-decision-banner {
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.autopluto-decision-banner--good    { background: #052e16 !important; border: 1px solid #166534 !important; }
+.autopluto-decision-banner--caution { background: #1c1500 !important; border: 1px solid #92400e !important; }
+.autopluto-decision-banner--danger  { background: #200b0b !important; border: 1px solid #9b1c1c !important; }
+.autopluto-decision-banner--neutral { background: #181f2c !important; border: 1px solid #2d3748 !important; }
+
+.autopluto-decision-left {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.autopluto-decision-pill {
+  display: inline-block !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  padding: 2px 8px !important;
+  border-radius: 100px !important;
+  margin-bottom: 5px !important;
+}
+
+.autopluto-decision-pill--good    { background: rgba(74,222,128,0.12) !important; color: #4ade80 !important; border: 1px solid rgba(74,222,128,0.3) !important; }
+.autopluto-decision-pill--caution { background: rgba(251,191,36,0.12) !important; color: #fbbf24 !important; border: 1px solid rgba(251,191,36,0.3) !important; }
+.autopluto-decision-pill--danger  { background: rgba(248,113,113,0.12) !important; color: #f87171 !important; border: 1px solid rgba(248,113,113,0.35) !important; }
+.autopluto-decision-pill--neutral { background: rgba(156,163,175,0.1) !important; color: #9ca3af !important; border: 1px solid rgba(156,163,175,0.2) !important; }
+
+.autopluto-decision-sub {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+.autopluto-decision-banner--good    .autopluto-decision-sub { color: #86efac !important; }
+.autopluto-decision-banner--caution .autopluto-decision-sub { color: #fde68a !important; }
+.autopluto-decision-banner--danger  .autopluto-decision-sub { color: #fca5a5 !important; }
+.autopluto-decision-banner--neutral .autopluto-decision-sub { color: #6b7280 !important; }
+
+.autopluto-decision-right {
+  text-align: right !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-decision-amount {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  letter-spacing: -1px !important;
+  line-height: 1 !important;
+}
+
+.autopluto-decision-amount--good    { color: #4ade80 !important; }
+.autopluto-decision-amount--caution { color: #fbbf24 !important; }
+.autopluto-decision-amount--danger  { color: #f87171 !important; }
+.autopluto-decision-amount--neutral { color: #6b7280 !important; font-size: 16px !important; }
+
+.autopluto-decision-amount-label {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  margin-top: 3px !important;
+}
+
+.autopluto-decision-banner--good    .autopluto-decision-amount-label { color: #86efac !important; }
+.autopluto-decision-banner--caution .autopluto-decision-amount-label { color: #fde68a !important; }
+.autopluto-decision-banner--danger  .autopluto-decision-amount-label { color: #fca5a5 !important; }
+.autopluto-decision-banner--neutral .autopluto-decision-amount-label { color: #4b5563 !important; }
+
+/* ── Price grid ──────────────────────────────────────────────── */
+.autopluto-price-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.autopluto-price-card {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 10px !important;
+  padding: 12px 12px 10px !important;
+  text-align: center !important;
+}
+
+.autopluto-price-card--main {
+  background: linear-gradient(155deg, #052e16, #07401e) !important;
+  border-color: #0d6e3f !important;
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+.autopluto-price-card--market {
+  background: #0c1e3a !important;
+  border-color: #1e3a5f !important;
+}
+
+.autopluto-price-card--current {
+  background: #161b26 !important;
+  border-color: #252d3d !important;
+}
+
+.autopluto-price-card-label {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #6b7280 !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-price-card--main    .autopluto-price-card-label { color: #34d399 !important; }
+.autopluto-price-card--market  .autopluto-price-card-label { color: #60a5fa !important; }
+.autopluto-price-card--current .autopluto-price-card-label { color: #9ca3af !important; }
+
+.autopluto-price-card-value {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #f9fafb !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+}
+
+.autopluto-price-card--main    .autopluto-price-card-value { color: #10b981 !important; font-size: 24px !important; letter-spacing: -1px !important; }
+.autopluto-price-card--market  .autopluto-price-card-value { color: #93c5fd !important; font-size: 18px !important; }
+.autopluto-price-card--current .autopluto-price-card-value { color: #d1d5db !important; font-size: 16px !important; }
+
+/* ── Expected range card ─────────────────────────────────────── */
+.autopluto-range-card {
+  background: #0a1628 !important;
+  border: 1px solid #1e3a5f !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+}
+
+.autopluto-range-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.autopluto-range-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #3b82f6 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-range-value {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #93c5fd !important;
+  letter-spacing: -0.3px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-range-track {
+  position: relative !important;
+  height: 4px !important;
+  background: #1e3a5f !important;
+  border-radius: 2px !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-range-track-fill {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 50%, #1d4ed8 100%) !important;
+  border-radius: 2px !important;
+  opacity: 0.55 !important;
+}
+
+.autopluto-range-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 10px !important;
+  height: 10px !important;
+  background: #93c5fd !important;
+  border: 2px solid #111827 !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 2px rgba(147,197,253,0.35) !important;
+  cursor: default !important;
+}
+
+.autopluto-range-track-labels {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 9px !important;
+  color: #4b5563 !important;
+  font-weight: 500 !important;
+}
+
+/* ── Badge pills (confidence, safety, comparables, fallback) ─── */
+.autopluto-badges-section {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.autopluto-badge-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: 100px !important;
+  padding: 4px 10px 4px 8px !important;
+  border: 1px solid #374151 !important;
+  background: #1f2937 !important;
+}
+
+.autopluto-badge-item-label {
+  color: #6b7280 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-item-value {
+  color: #e5e7eb !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.autopluto-badge-item--green  { border-color: #166534 !important; background: #052e16 !important; }
+.autopluto-badge-item--green  .autopluto-badge-item-value { color: #4ade80 !important; }
+
+.autopluto-badge-item--yellow { border-color: #92400e !important; background: #1c1500 !important; }
+.autopluto-badge-item--yellow .autopluto-badge-item-value { color: #fbbf24 !important; }
+
+.autopluto-badge-item--red    { border-color: #991b1b !important; background: #1f0a0a !important; }
+.autopluto-badge-item--red    .autopluto-badge-item-value { color: #f87171 !important; }
+
+.autopluto-badge-item--blue   { border-color: #1e40af !important; background: #0f1e3a !important; }
+.autopluto-badge-item--blue   .autopluto-badge-item-value { color: #93c5fd !important; }
+
+.autopluto-badge-item--gray   { border-color: #374151 !important; background: #1f2937 !important; }
+.autopluto-badge-item--gray   .autopluto-badge-item-value { color: #9ca3af !important; }
+
+/* ── Manual review warning box ───────────────────────────────── */
+.autopluto-manual-review-box {
+  background: #1a0c00 !important;
+  border: 1.5px solid #d97706 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  box-shadow: 0 0 0 1px rgba(217,119,6,0.12), inset 0 0 20px rgba(217,119,6,0.04) !important;
+}
+
+.autopluto-manual-review-icon {
+  font-size: 17px !important;
+  flex-shrink: 0 !important;
+  color: #f59e0b !important;
+  line-height: 1 !important;
+  margin-top: 1px !important;
+}
+
+.autopluto-manual-review-title {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #f59e0b !important;
+  letter-spacing: 0.1px !important;
+  line-height: 1.3 !important;
+}
+
+.autopluto-manual-review-sub {
+  font-size: 10px !important;
+  color: #fcd34d !important;
+  margin-top: 2px !important;
+  line-height: 1.4 !important;
+  opacity: 0.85 !important;
+}
+
+/* ── Warning banners ──────────────────────────────────────────── */
+.autopluto-warning-banner {
+  background: #1c1500 !important;
+  border: 1px solid #92400e !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 10px !important;
+  color: #fde68a !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+.autopluto-warning-banner + .autopluto-warning-banner {
+  margin-top: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COLLAPSIBLE SECTIONS  (<details> / <summary>)
+   All collapsed by default; expand on user click.
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-details {
+  background: #0d1117 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.autopluto-details--warning {
+  border-color: rgba(146,64,14,0.65) !important;
+}
+
+.autopluto-details-summary {
+  list-style: none !important;
+  cursor: pointer !important;
+  padding: 9px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  user-select: none !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.autopluto-details-summary::-webkit-details-marker { display: none !important; }
+.autopluto-details-summary::marker                 { display: none !important; }
+
+.autopluto-details-summary:hover {
+  background: rgba(255,255,255,0.025) !important;
+}
+
+.autopluto-details-title {
+  flex: 1 !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+}
+
+.autopluto-details--warning .autopluto-details-title {
+  color: #d97706 !important;
+}
+
+.autopluto-details-count {
+  font-size: 9px !important;
+  color: #4b5563 !important;
+  font-weight: 500 !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-details-arrow {
+  font-size: 9px !important;
+  color: #4b5563 !important;
+  display: inline-block !important;
+  transition: transform 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+details[open].autopluto-details > .autopluto-details-summary .autopluto-details-arrow {
+  transform: rotate(90deg) !important;
+}
+
+.autopluto-details-body {
+  padding: 4px 12px 12px !important;
+  border-top: 1px solid #1a1f2e !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.autopluto-details--warning .autopluto-details-body {
+  border-top-color: rgba(146,64,14,0.4) !important;
+}
+
+.autopluto-details-list {
+  list-style: none !important;
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.autopluto-details-list li {
+  font-size: 10px !important;
+  color: #9ca3af !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+  line-height: 1.4 !important;
+}
+
+.autopluto-details-list li::before {
+  content: '•' !important;
+  color: #3b82f6 !important;
+  font-size: 13px !important;
+  flex-shrink: 0 !important;
+  line-height: 1.15 !important;
+}
+
+.autopluto-details--warning .autopluto-details-list li::before {
+  color: #d97706 !important;
+}
+
+.autopluto-details-list--muted li { color: #6b7280 !important; }
+.autopluto-details-list--muted li::before { color: #374151 !important; }
+
+/* ── Input coverage grid (inside collapsible body) ────────────── */
+.autopluto-data-quality-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 5px 4px !important;
+  margin-top: 8px !important;
+}
+
+.autopluto-data-field {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+}
+
+.autopluto-data-field-dot {
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+.autopluto-data-field--ok   { color: #6ee7b7 !important; }
+.autopluto-data-field--miss { color: #4b5563 !important; }
+
+.autopluto-data-field--ok   .autopluto-data-field-dot { background: #22c55e !important; }
+.autopluto-data-field--miss .autopluto-data-field-dot { background: #374151 !important; }
+
+.autopluto-data-missing-note {
+  margin-top: 7px !important;
+  font-size: 9px !important;
+  color: #6b7280 !important;
+  line-height: 1.4 !important;
+}
+
+/* ── Adjustment details grid (inside collapsible body) ────────── */
+.autopluto-adjust-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 6px 10px !important;
+  margin: 8px 0 !important;
+}
+
+.autopluto-adjust-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+}
+
+.autopluto-adjust-label {
+  font-size: 8px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  color: #4b5563 !important;
+}
+
+.autopluto-adjust-value {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #d1d5db !important;
+}
+
+.autopluto-adjust-reasons-title {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #4b5563 !important;
+  margin-bottom: 4px !important;
+}
+
+/* ── Debug pre (inside collapsible) ─────────────────────────── */
+.autopluto-debug-pre {
+  background: #000 !important;
+  color: #80cbc4 !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+  font-size: 10px !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  margin: 8px 0 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* ── Card footer ─────────────────────────────────────────────── */
+.autopluto-card-footer {
+  padding: 10px 16px !important;
+  background: #0d1117 !important;
+  border-top: 1px solid #1a1f2e !important;
+  border-radius: 0 0 14px 14px !important;
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+.autopluto-footer-btn {
+  all: initial !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 5px 12px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  border: 1px solid transparent !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+  line-height: 1.4 !important;
+  box-sizing: border-box !important;
+}
+
+.autopluto-footer-btn--primary  { background: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important; }
+.autopluto-footer-btn--primary:hover { background: #1d4ed8 !important; }
+
+.autopluto-footer-btn--secondary { background: #1f2937 !important; color: #d1d5db !important; border-color: #374151 !important; }
+.autopluto-footer-btn--secondary:hover { background: #374151 !important; color: #f9fafb !important; }
+
+.autopluto-footer-btn--ghost { background: transparent !important; color: #4b5563 !important; border-color: transparent !important; }
+.autopluto-footer-btn--ghost:hover { color: #9ca3af !important; background: #1f2937 !important; }
+
+/* Class aliases — do not add styles here, kept for selector targeting */
+.autopluto-refresh-btn      { }
+.autopluto-copy-result-btn  { }
+.autopluto-copy-payload-btn { }
+
+.autopluto-footer-btn--close {
+  background: transparent !important;
+  color: #ef4444 !important;
+  border-color: rgba(239,68,68,0.3) !important;
+  margin-left: auto !important;
+}
+.autopluto-footer-btn--close:hover {
+  background: rgba(239,68,68,0.1) !important;
+  color: #f87171 !important;
+  border-color: rgba(239,68,68,0.5) !important;
+}
+
+/* ── Error card ──────────────────────────────────────────────── */
+.autopluto-card-error {
+  border-color: #991b1b !important;
+}
+
+.autopluto-error-msg {
+  font-size: 11px !important;
+  color: #fca5a5 !important;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+  line-height: 1.5 !important;
+}
+
+.autopluto-validation-errors {
+  margin: 8px 0 0 !important;
+  padding: 0 0 0 14px !important;
+  list-style: disc !important;
+  font-size: 10px !important;
+  color: #fca5a5 !important;
+  line-height: 1.6 !important;
+}
+
+.autopluto-validation-errors li {
+  margin-bottom: 2px !important;
+}
+
+/* ── Loading skeleton ────────────────────────────────────────── */
+.autopluto-skeleton-status {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  margin-bottom: 4px !important;
+  font-style: italic !important;
+}
+
+.autopluto-skeleton-bar {
+  height: 14px !important;
+  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%) !important;
+  background-size: 200% 100% !important;
+  border-radius: 4px !important;
+  margin-bottom: 8px !important;
+  animation: autopluto-shimmer 1.4s ease-in-out infinite !important;
+}
+
+.autopluto-skeleton-bar-sm { width: 68% !important; }
+.autopluto-skeleton-bar-xs { width: 42% !important; }
+
+@keyframes autopluto-shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.autopluto-divider {
+  height: 1px !important;
+  background: #1f2937 !important;
+  margin: 2px 0 !important;
+}
+
+/* ── Legacy badge styles (backwards compatibility) ───────────── */
+.autopluto-badge {
+  display: inline-block !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  border: 1px solid transparent !important;
+}
+
+.autopluto-badge-green   { background: #052e16 !important; color: #4ade80 !important; border-color: #166534 !important; }
+.autopluto-badge-yellow  { background: #1c1500 !important; color: #fbbf24 !important; border-color: #92400e !important; }
+.autopluto-badge-red     { background: #1f0a0a !important; color: #f87171 !important; border-color: #991b1b !important; }
+.autopluto-badge-gray    { background: #1f2937 !important; color: #9ca3af !important; border-color: #374151 !important; }
+.autopluto-badge-safe    { background: #052e16 !important; color: #4ade80 !important; border-color: #166534 !important; }
+.autopluto-badge-warning { background: #1c1500 !important; color: #fbbf24 !important; border-color: #92400e !important; }
+.autopluto-badge-danger  { background: #1f0a0a !important; color: #f87171 !important; border-color: #991b1b !important; }
+
+/* ── Legacy collapsible (kept in case any path still hits it) ── */
+.autopluto-debug-panel {
+  background: #0d1117 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.autopluto-debug-toggle {
+  all: initial !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  width: 100% !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  letter-spacing: 0.2px !important;
+}
+
+.autopluto-debug-toggle:hover { color: #9ca3af !important; }
+
+.autopluto-debug-content { display: none !important; padding: 0 12px 12px !important; }
+.autopluto-debug-content.autopluto-debug-open { display: block !important; }
+
+/* ── Calibration badge (legacy) ──────────────────────────────── */
+.autopluto-badge-calib {
+  display: inline-block !important;
+  background: rgba(99,102,241,0.12) !important;
+  color: rgba(165,180,252,0.85) !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  letter-spacing: 0.4px !important;
+  border: 1px solid rgba(99,102,241,0.28) !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  white-space: nowrap !important;
+}
+
+/* ── Debug modal (standalone) ────────────────────────────────── */
+.autopluto-debug-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 99999 !important;
+  width: 520px !important;
+  max-width: 95vw !important;
+  background: #0d1117 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7) !important;
+  color: #e8eaed !important;
+  overflow: hidden !important;
+}
+
+.autopluto-debug-inner { padding: 16px !important; }
+
+.autopluto-debug-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  color: #e8eaed !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+#autopluto-debug-close {
+  all: initial !important;
+  color: #6b7280 !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+}
+
+#autopluto-debug-close:hover { color: #9ca3af !important; }
+
+#autopluto-debug-copy {
+  all: initial !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  background: #2563eb !important;
+  color: #fff !important;
+  padding: 5px 14px !important;
+  border-radius: 5px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM REDESIGN  v8 — complete component system
+   EMP is the hero. Confidence tightly coupled. Comparables chart.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Card body ────────────────────────────────────────────────── */
+.autopluto-card-body {
+  padding: 10px 14px !important;
+  gap: 8px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   B. PRIMARY INTELLIGENCE SECTION
+   Left hero (EMP + confidence) + Right stack (RMB + Current Bid)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-primary-intel {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+/* ── EMP Hero Card (dominant, ~58% width) ─────────────────────── */
+.autopluto-emp-hero {
+  flex: 1 1 58% !important;
+  background: linear-gradient(145deg, #080f1e 0%, #0d1e3a 55%, #0f2348 100%) !important;
+  border: 1.5px solid #243c5f !important;
+  border-radius: 12px !important;
+  padding: 12px 14px 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+
+.autopluto-emp-hero-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  color: #60a5fa !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-emp-hero-value {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  color: #e0ecff !important;
+  letter-spacing: -1.5px !important;
+  line-height: 1 !important;
+  margin-bottom: 10px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-shadow: 0 0 32px rgba(96,165,250,0.22) !important;
+}
+
+/* Confidence + Quality block inside EMP hero — column layout */
+.autopluto-emp-conf {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  margin-top: auto !important;
+}
+
+/* Each row: label + meter + badge on one line */
+.autopluto-emp-conf-row,
+.autopluto-emp-quality-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+/* "Confidence" / "Quality" key labels */
+.autopluto-emp-conf-key {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #60a5fa !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 62px !important;
+}
+
+/* Dim variant for "Quality" label (secondary) */
+.autopluto-emp-conf-key--dim {
+  color: #93a8c4 !important;
+}
+
+.autopluto-emp-conf-meter {
+  flex: 1 !important;
+  height: 4px !important;
+  background: rgba(30,58,95,0.9) !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+  max-width: 64px !important;
+}
+
+.autopluto-emp-conf-fill {
+  height: 100% !important;
+  border-radius: 2px !important;
+  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.autopluto-emp-conf-fill--green  { background: linear-gradient(90deg, #059669, #10b981) !important; }
+.autopluto-emp-conf-fill--yellow { background: linear-gradient(90deg, #d97706, #f59e0b) !important; }
+.autopluto-emp-conf-fill--red    { background: linear-gradient(90deg, #dc2626, #ef4444) !important; }
+.autopluto-emp-conf-fill--gray   { background: #374151 !important; }
+
+.autopluto-emp-conf-badge {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 100px !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+}
+.autopluto-emp-conf-badge--green  { background: rgba(16,185,129,0.1)  !important; color: #10b981 !important; border: 1px solid rgba(16,185,129,0.24) !important; }
+.autopluto-emp-conf-badge--yellow { background: rgba(245,158,11,0.1)  !important; color: #f59e0b !important; border: 1px solid rgba(245,158,11,0.24) !important; }
+.autopluto-emp-conf-badge--red    { background: rgba(239,68,68,0.1)   !important; color: #ef4444 !important; border: 1px solid rgba(239,68,68,0.24)  !important; }
+.autopluto-emp-conf-badge--gray   { background: rgba(107,114,128,0.08)!important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.18)!important; }
+
+/* Quality badge — visually secondary (smaller, dimmer) */
+.autopluto-emp-quality-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0.1px !important;
+  white-space: nowrap !important;
+}
+.autopluto-emp-quality-badge--green  { background: rgba(16,185,129,0.07)  !important; color: #6ee7b7 !important; border: 1px solid rgba(16,185,129,0.18) !important; }
+.autopluto-emp-quality-badge--yellow { background: rgba(245,158,11,0.07)  !important; color: #fcd34d !important; border: 1px solid rgba(245,158,11,0.18) !important; }
+.autopluto-emp-quality-badge--red    { background: rgba(239,68,68,0.07)   !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.18)  !important; }
+.autopluto-emp-quality-badge--gray   { background: rgba(107,114,128,0.05) !important; color: #6b7280 !important; border: 1px solid rgba(107,114,128,0.15)!important; }
+
+/* ── Right stack (~42% width) ─────────────────────────────────── */
+.autopluto-right-stack {
+  flex: 0 0 42% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+/* RMB mini card */
+.autopluto-rmb-mini {
+  flex: 1 !important;
+  background: #051a0e !important;
+  border: 1px solid #0a6840 !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.08), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+.autopluto-rmb-mini-label {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  color: #34d399 !important;
+  margin-bottom: 4px !important;
+}
+.autopluto-rmb-mini-value {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #6ee7b7 !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+.autopluto-rmb-mini-sub {
+  font-size: 8px !important;
+  color: rgba(110,231,183,0.5) !important;
+  margin-top: 2px !important;
+  font-weight: 500 !important;
+}
+
+/* Current Bid mini card */
+.autopluto-bid-mini {
+  flex: 1 !important;
+  background: #0b1020 !important;
+  border: 1px solid #232e42 !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+}
+.autopluto-bid-mini-label {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  color: #6b7280 !important;
+  margin-bottom: 4px !important;
+}
+.autopluto-bid-mini-value {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #f59e0b !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+.autopluto-bid-mini-value--none {
+  color: #374151 !important;
+  font-size: 15px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   C. DECISION INSIGHT BAR  (compact, secondary status)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-insight-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 7px 11px !important;
+  border-radius: 8px !important;
+  border-left: 3px solid transparent !important;
+}
+.autopluto-insight-bar--good    { background: rgba(5,46,22,0.8) !important;   border-left-color: #22c55e !important; border: 1px solid rgba(22,101,52,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--caution { background: rgba(28,21,0,0.8) !important;   border-left-color: #f59e0b !important; border: 1px solid rgba(120,53,15,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--danger  { background: rgba(32,11,11,0.8) !important;  border-left-color: #ef4444 !important; border: 1px solid rgba(127,29,29,0.5) !important; border-left-width: 3px !important; }
+.autopluto-insight-bar--neutral { background: rgba(12,17,28,0.85) !important; border-left-color: #4b5563 !important; border: 1px solid rgba(55,65,81,0.5)  !important; border-left-width: 3px !important; }
+
+.autopluto-insight-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+.autopluto-insight-bar--good    .autopluto-insight-dot { background: #22c55e !important; }
+.autopluto-insight-bar--caution .autopluto-insight-dot { background: #f59e0b !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-dot { background: #ef4444 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-dot { background: #374151 !important; }
+
+.autopluto-insight-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+.autopluto-insight-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+.autopluto-insight-bar--good    .autopluto-insight-label { color: #86efac !important; }
+.autopluto-insight-bar--caution .autopluto-insight-label { color: #fde68a !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-label { color: #fca5a5 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-label { color: #6b7280 !important; }
+
+.autopluto-insight-meta {
+  font-size: 11px !important;
+  flex-shrink: 0 !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+.autopluto-insight-meta strong { font-weight: 800 !important; }
+.autopluto-insight-bar--good    .autopluto-insight-meta { color: #4ade80 !important; }
+.autopluto-insight-bar--caution .autopluto-insight-meta { color: #fbbf24 !important; }
+.autopluto-insight-bar--danger  .autopluto-insight-meta { color: #f87171 !important; }
+.autopluto-insight-bar--neutral .autopluto-insight-meta { color: #4b5563 !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   D. EXPECTED MARKET RANGE  (premium range rail v2)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-range-card {
+  background: linear-gradient(145deg, #060d1a 0%, #091422 100%) !important;
+  border: 1px solid #1e3a5a !important;
+  border-radius: 12px !important;
+  padding: 12px 14px 14px !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.06), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Header row: title left, spread pill right */
+.autopluto-range-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+  gap: 8px !important;
+}
+
+.autopluto-range-card-title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  color: #60a5fa !important;
+}
+
+.autopluto-range-spread-pill {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #93c5fd !important;
+  background: rgba(59,130,246,0.1) !important;
+  border: 1px solid rgba(59,130,246,0.22) !important;
+  border-radius: 100px !important;
+  padding: 2px 9px !important;
+  letter-spacing: 0.2px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Endpoint values row (Low left / High right) above the track */
+.autopluto-range-endpoints {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  margin-bottom: 6px !important;
+}
+
+.autopluto-range-endpoint {}
+
+.autopluto-range-endpoint--high {
+  text-align: right !important;
+}
+
+.autopluto-range-endpoint-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #374151 !important;
+  margin-bottom: 2px !important;
+}
+
+.autopluto-range-endpoint--low  .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
+.autopluto-range-endpoint--high .autopluto-range-endpoint-lbl { color: #4b7099 !important; }
+
+.autopluto-range-endpoint-val {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.6px !important;
+  line-height: 1 !important;
+}
+
+.autopluto-range-endpoint--low  .autopluto-range-endpoint-val { color: #7dd3fc !important; }
+.autopluto-range-endpoint--high .autopluto-range-endpoint-val { color: #93c5fd !important; }
+
+/* Track wrapper — relative so the EMP marker can be absolutely positioned */
+.autopluto-range-track-wrap {
+  position: relative !important;
+  padding-bottom: 20px !important; /* space for the EMP label below */
+}
+
+/* The actual track bar */
+.autopluto-range-track-v2 {
+  position: relative !important;
+  height: 10px !important;
+  background: #0a1628 !important;
+  border-radius: 5px !important;
+  border: 1px solid #1a3354 !important;
+  overflow: visible !important;
+}
+
+/* Gradient fill that spans the full track */
+.autopluto-range-track-fill-v2 {
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 5px !important;
+  background: linear-gradient(90deg,
+    #1a3d78 0%,
+    #1d4ed8 20%,
+    #3b82f6 45%,
+    #60a5fa 55%,
+    #3b82f6 75%,
+    #1d4ed8 88%,
+    #1a3d78 100%) !important;
+  opacity: 0.5 !important;
+}
+
+/* Round end-caps on the track */
+.autopluto-range-track-low-cap,
+.autopluto-range-track-high-cap {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: 2px solid #0d1e38 !important;
+  z-index: 2 !important;
+}
+
+.autopluto-range-track-low-cap {
+  left: -1px !important;
+  background: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.35), 0 0 10px rgba(37,99,235,0.4) !important;
+}
+
+.autopluto-range-track-high-cap {
+  right: -1px !important;
+  background: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96,165,250,0.35), 0 0 10px rgba(96,165,250,0.4) !important;
+}
+
+/* EMP marker — size matches the dot exactly so translate(-50%,-50%) centers the dot on the track */
+.autopluto-range-emp-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 3 !important;
+  width: 18px !important;
+  height: 18px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-emp-dot {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 38% 36%, #93c5fd, #3b82f6) !important;
+  border: 2.5px solid #070e1c !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 0 16px rgba(59,130,246,0.7) !important;
+}
+
+/* EMP label — absolutely below the dot, does not affect marker height */
+.autopluto-range-emp-label {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #60a5fa !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* Current Bid marker — size matches the dot exactly */
+.autopluto-range-bid-marker {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 4 !important;
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none !important;
+}
+
+.autopluto-range-bid-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 38% 36%, #fde68a, #f59e0b) !important;
+  border: 2px solid #070e1c !important;
+  box-shadow: 0 0 0 2.5px rgba(245,158,11,0.35), 0 0 12px rgba(245,158,11,0.6) !important;
+}
+
+/* BID label — absolutely below the dot, does not affect marker height */
+.autopluto-range-bid-label {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #f59e0b !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+/* Keep legacy classes for any code that still references them */
+.autopluto-range-viz { margin-bottom: 2px !important; }
+
+.autopluto-range-card .autopluto-range-track {
+  position: relative !important;
+  height: 12px !important;
+  background: #0a1526 !important;
+  border-radius: 6px !important;
+  margin-bottom: 0 !important;
+  border: 1px solid #1e3558 !important;
+}
+
+.autopluto-range-card .autopluto-range-track-fill {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 22%, #2563eb 50%, #0ea5e9 68%, #1d4ed8 82%, #1e3a8a 100%) !important;
+  border-radius: 6px !important;
+  opacity: 0.55 !important;
+}
+
+.autopluto-rm {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid #070e1c !important;
+  z-index: 2 !important;
+  cursor: default !important;
+  transition: transform 0.15s ease, filter 0.15s ease !important;
+}
+.autopluto-rm:hover {
+  transform: translate(-50%, -50%) scale(1.4) !important;
+  z-index: 3 !important;
+}
+.autopluto-rm--emp {
+  background: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.30), 0 0 14px rgba(59,130,246,0.55) !important;
+  border-color: #1e3a8a !important;
+}
+.autopluto-rm--rmb     { background: #10b981 !important; border-color: #064e3b !important; }
+.autopluto-rm--current { background: #f97316 !important; border-color: #7c2d12 !important; }
+
+.autopluto-range-bounds {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  margin-top: 5px !important;
+  margin-bottom: 8px !important;
+}
+
+.autopluto-range-bound {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.autopluto-range-bound--high {
+  align-items: flex-end !important;
+  text-align: right !important;
+}
+
+.autopluto-range-bound-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #4b5563 !important;
+}
+
+.autopluto-range-bound-val {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #93c5fd !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1 !important;
+}
+
+.autopluto-range-bound--low  .autopluto-range-bound-val { color: #7dd3fc !important; }
+.autopluto-range-bound--high .autopluto-range-bound-val { color: #93c5fd !important; }
+
+.autopluto-range-legend {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px !important;
+  border-top: 1px solid #1a2f4a !important;
+  padding-top: 12px !important;
+  margin-top: 2px !important;
+}
+
+.autopluto-range-legend-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+}
+.autopluto-range-legend-dot {
+  width: 9px !important;
+  height: 9px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+  box-shadow: 0 0 6px currentColor !important;
+}
+.autopluto-range-legend-dot--emp     { background: #3b82f6 !important; box-shadow: 0 0 6px rgba(59,130,246,0.55) !important; }
+.autopluto-range-legend-dot--rmb     { background: #10b981 !important; box-shadow: 0 0 6px rgba(16,185,129,0.55) !important; }
+.autopluto-range-legend-dot--current { background: #f97316 !important; box-shadow: 0 0 6px rgba(249,115,22,0.55) !important; }
+
+.autopluto-range-legend-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+}
+.autopluto-range-legend-lbl {
+  font-size: 8px !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+}
+.autopluto-range-legend-val {
+  font-size: 12px !important;
+  color: #c7d8f0 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.3px !important;
+}
+
+.autopluto-range-legend--compact {
+  grid-template-columns: repeat(2, auto) !important;
+  justify-content: flex-start !important;
+  gap: 4px 16px !important;
+  border-top-color: #1a2f4a !important;
+  padding-top: 8px !important;
+  margin-top: 0 !important;
+}
+.autopluto-range-legend--compact .autopluto-range-legend-val {
+  font-size: 11px !important;
+}
+
+.autopluto-range-simple-val--bid {
+  color: #f97316 !important;
+}
+
+.autopluto-range-simple {
+  display: flex !important;
+  gap: 20px !important;
+  flex-wrap: wrap !important;
+}
+.autopluto-range-simple-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+.autopluto-range-simple-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  color: #4b5563 !important;
+}
+.autopluto-range-simple-val {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #93c5fd !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   E. COMPARABLE VEHICLES CHART  (SVG scatter plot)
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-comps-card {
+  background: #070e1c !important;
+  border: 1px solid #1e3558 !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+}
+
+.autopluto-comps-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 8px !important;
+}
+.autopluto-comps-title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: #60a5fa !important;
+}
+.autopluto-comps-count-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  background: #0a1526 !important;
+  border: 1px solid #243c5f !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+}
+
+/* Chart wrapper — position:relative so tooltip can be absolute */
+.autopluto-comps-chart-wrap {
+  position: relative !important;
+  width: 100% !important;
+}
+
+.autopluto-comps-svg {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* SVG data points — larger and brighter for readability */
+.autopluto-comp-dot {
+  fill: #50c8f8 !important;
+  stroke: #071828 !important;
+  stroke-width: 2 !important;
+  cursor: pointer !important;
+  transition: fill 0.15s ease, filter 0.15s ease, r 0.15s ease !important;
+}
+.autopluto-comp-dot:hover {
+  fill: #a5e3ff !important;
+  filter: drop-shadow(0 0 8px rgba(80,200,248,0.9)) !important;
+}
+
+/* Hover tooltip */
+.autopluto-comp-tooltip {
+  display: none !important;
+  position: absolute !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+  background: #0d1e38 !important;
+  border: 1px solid #2a4a72 !important;
+  border-radius: 8px !important;
+  padding: 9px 11px !important;
+  min-width: 152px !important;
+  max-width: 210px !important;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.75), 0 0 0 1px rgba(56,189,248,0.08) !important;
+  font-family: "Geist Sans", "Geist", Inter, ui-sans-serif, system-ui, sans-serif !important;
+}
+.autopluto-comp-tt-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #e2ecff !important;
+  margin-bottom: 7px !important;
+  line-height: 1.3 !important;
+  border-bottom: 1px solid #1e3558 !important;
+  padding-bottom: 6px !important;
+}
+.autopluto-comp-tt-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+.autopluto-comp-tt-row span {
+  font-size: 9px !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+.autopluto-comp-tt-row strong {
+  font-size: 11px !important;
+  color: #bcd5f5 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+/* Empty state */
+.autopluto-comps-empty {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  padding: 4px 0 2px !important;
+}
+.autopluto-comps-empty-icon {
+  font-size: 14px !important;
+  color: #374151 !important;
+  flex-shrink: 0 !important;
+  line-height: 1.5 !important;
+}
+.autopluto-comps-empty-text {
+  font-size: 10px !important;
+  color: #64748b !important;
+  line-height: 1.55 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   F. SUPPORTING RISK & QUALITY SIGNALS
+   ═══════════════════════════════════════════════════════════════ */
+
+.autopluto-signals-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+.autopluto-signal-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 10px 4px 8px !important;
+  border-radius: 100px !important;
+  border: 1px solid #1f2937 !important;
+  background: #0c1120 !important;
+}
+.autopluto-signal-lbl {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #4b5563 !important;
+}
+.autopluto-signal-val {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: capitalize !important;
+  color: #9ca3af !important;
+}
+.autopluto-signal-chip--green  { border-color: #166534 !important; background: #052e16 !important; }
+.autopluto-signal-chip--green  .autopluto-signal-val { color: #4ade80 !important; }
+.autopluto-signal-chip--yellow { border-color: #92400e !important; background: #1c1500 !important; }
+.autopluto-signal-chip--yellow .autopluto-signal-val { color: #fbbf24 !important; }
+.autopluto-signal-chip--red    { border-color: #991b1b !important; background: #1f0a0a !important; }
+.autopluto-signal-chip--red    .autopluto-signal-val { color: #f87171 !important; }
+.autopluto-signal-chip--blue   { border-color: #1e40af !important; background: #0f1e3a !important; }
+.autopluto-signal-chip--blue   .autopluto-signal-val { color: #93c5fd !important; }
+.autopluto-signal-chip--gray   { border-color: #374151 !important; background: #1f2937 !important; }
+.autopluto-signal-chip--gray   .autopluto-signal-val { color: #9ca3af !important; }
+
+/* ── Collapsibles wrapper ─────────────────────────────────────── */
+.autopluto-collapsibles {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+/* ── Meta tags (header) ──────────────────────────────────────── */
+.autopluto-meta-tag {
+  font-size: 10px !important;
+  color: rgba(255,255,255,0.5) !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+.autopluto-meta-tag--mono {
+  font-family: 'Consolas', 'Courier New', monospace !important;
+  color: rgba(255,255,255,0.42) !important;
+  letter-spacing: 0.3px !important;
+}
+.autopluto-meta-tag--warn {
+  color: rgba(251,191,36,0.8) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.autopluto-card::-webkit-scrollbar       { width: 5px !important; }
+.autopluto-card::-webkit-scrollbar-track { background: rgba(0,0,0,0.2) !important; border-radius: 3px !important; }
+.autopluto-card::-webkit-scrollbar-thumb { background: #1e2d42 !important; border-radius: 3px !important; }
+.autopluto-card::-webkit-scrollbar-thumb:hover { background: #2d3f5a !important; }
+
+/* ── Collapsible summary hover ───────────────────────────────── */
+.autopluto-details-summary:hover {
+  background: rgba(255,255,255,0.03) !important;
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.autopluto-card-footer {
+  gap: 8px !important;
+  justify-content: flex-end !important;
+}
+
+/* ── Batch banner ────────────────────────────────────────────── */
+.autopluto-batch-banner {
+  position: fixed !important;
+  bottom: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99998 !important;
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+  padding: 8px 20px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5) !important;
+  white-space: nowrap !important;
+}
